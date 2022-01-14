@@ -1,0 +1,10 @@
+def coin_details():
+    symbol = ['BTCUSDT', 'ETHUSDT', 'ONEUSDT', 'FTMUSDT', 'SYSUSDT', 'MATICUSDT', 'AXSUSDT',
+          'AGLDUSDT', 'AVAXUSDT', 'BALUSDT', 'BNBUSDT', 'CELOUSDT', 'DENTUSDT', 'FILUSDT',
+          'FLMUSDT', 'FUNUSDT', 'HOTUSDT', 'ICPUSDT', 'IOTAUSDT', 'MANAUSDT', 'MBOXUSDT',
+          'MINAUSDT', 'QTUMUSDT', 'REEFUSDT', 'RVNUSDT', 'RUNEUSDT', 'SANDUSDT', 'SOLUSDT',
+          'TRBUSDT', 'ALICEUSDT', 'GALAUSDT', 'ROSEUSDT', 'CRVUSDT', 'DOTUSDT', 'HBARUSDT']
+
+    intervals = ['3MINUTE', '1HOUR', '4HOUR', '1DAY', '1WEEK', '1MONTH']
+
+    return symbol, intervals
