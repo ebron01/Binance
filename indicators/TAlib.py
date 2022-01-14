@@ -8,10 +8,13 @@ import matplotlib.pyplot as plt
 import numpy as np
 from slackinform import Inform
 from data.coins import coin_details
+from datetime import datetime, timedelta
+import matplotlib.dates as mdates
 
 class plotter():
     def __init__(self, RSI=None, RSIbasedMA=None, macd=None, macdsignal=None, macdhist=None,
-                 buy=None, sell=None, macdbuy=None, macdsell=None, rsibuy=None, rsisell=None):
+                 buy=None, sell=None, macdbuy=None, macdsell=None, rsibuy=None, rsisell=None,
+                 currenttime=None, pricetime=None):
         self.RSI = RSI
         self.RSIbasedMA = RSIbasedMA
         self.macd = macd
@@ -23,6 +26,8 @@ class plotter():
         self.macdsell = macdsell
         self.rsibuy = rsibuy
         self.rsisell = rsisell
+        self.currenttime = currenttime
+        self.pricetime = pricetime
 
     def plotRSI(self, pair, interval):
         plt.figure(figsize=(30, 5))
@@ -30,12 +35,17 @@ class plotter():
         plt.plot(self.RSIbasedMA, label='SMA', c='b')
         plt.scatter(list(self.rsibuy.keys()), self.RSIbasedMA.iloc[list(self.rsibuy.keys())], marker='^', color='g', s=100)
         plt.scatter(list(self.rsisell.keys()), self.RSIbasedMA.iloc[list(self.rsisell.keys())], marker='v', color='r', s=100)
-        plt.yticks(np.arange(0, 100, step=10))
+        # timestamp = np.arange(np.datetime64(list(self.pricetime)[0]), np.datetime64(list(self.pricetime)[-1]), timedelta(minutes=3))
+        # plt.scatter([timestamp[key] for key in list(self.rsibuy.keys())], self.RSIbasedMA.iloc[list(self.rsibuy.keys())], marker='^', color='g', s=100)
+        # plt.scatter([timestamp[key] for key in list(self.rsisell.keys())], self.RSIbasedMA.iloc[list(self.rsisell.keys())], marker='v', color='r', s=100)
+        # plt.yticks(np.arange(0, 100, step=10))
+        # plt.xticks(timestamp)
         plt.grid()
         plt.legend()
         plt.title(pair)
         # plt.show()
-        plt.savefig('./charts/RSIbuysell' + pair + interval + '.png')
+        plt.savefig('./charts/RSI/' + pair + interval + plotter.gettime(self).replace(':', '_') + '.png')
+
     def plotMACD(self, pair, interval):
         plt.figure(figsize=(30, 5))
         plt.plot(self.macd, label='macd', c='blue')
@@ -48,9 +58,9 @@ class plotter():
         plt.legend()
         plt.title(pair)
         # plt.show()
-        plt.savefig('./charts/MACDbuysell' + pair + interval + '.png')
-    def plotMACDRSI(self, pair, interval):
+        plt.savefig('./charts/MACD/' + pair + interval + plotter.gettime(self).replace(':', '_') + '.png')
 
+    def plotMACDRSI(self, pair, interval):
         fig, (ax1, ax2) = plt.subplots(2, sharex=True, figsize=(30, 5))
         fig.suptitle(pair)
         # fig.figure(figsize=(30, 5))
@@ -70,7 +80,11 @@ class plotter():
         #plt.yticks(np.arange(0, 100, step=10))
         ax2.grid()
         ax2.legend(loc=1)
-        fig.savefig('./charts/MACDRSI' + pair + interval + '.png')
+        fig.savefig('./charts/MACDRSI/' + pair + interval + plotter.gettime(self).replace(':', '_') + '.png')
+    def gettime(self):
+        now = datetime.now()
+        self.current_time = now.strftime("%H:%M:%S")
+        return self.current_time
 
 class conditions():
     def MACDcond(results):
@@ -179,13 +193,12 @@ class indicators():
 
 if __name__ == '__main__':
     symbol, intervals = coin_details()
-
     pair = "ETHUSDT"
     interval = intervals[0]
     engine = sqlalchemy.create_engine('sqlite:///../history/DBDEV/DEVSELECTED.db')
     chart = plotter()
     prices = pd.read_sql('SELECT * FROM ' + pair + interval + '', engine)
-
+    chart.pricetime=prices['close_time']
     """Does required calculations based on indicator types"""
     chart.RSI, chart.RSIbasedMA = indicators.RSI(prices)
     chart.macd, chart.macdsignal, chart.macdhist = indicators.MACD(prices)
