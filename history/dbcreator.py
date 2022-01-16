@@ -1,7 +1,7 @@
 from keys import api_keys
 from binance.client import Client
 import sqlite3
-
+from data.coins import coin_details
 def getPairs(client):
     """This part creates the list of coin pairs that are listed on Binance"""
     symbol = []
@@ -40,12 +40,6 @@ if __name__ == '__main__':
     """
     FOR SELECTED COINS OUT OF EVERY COIN OTHER THAN DEAD ONES
     """
-    symbol = ['BTCUSDT', 'ETHUSDT', 'ONEUSDT', 'FTMUSDT', 'SYSUSDT', 'MATICUSDT', 'AXSUSDT',
-            'AGLDUSDT', 'AVAXUSDT', 'BALUSDT', 'BNBUSDT', 'CELOUSDT', 'DENTUSDT', 'FILUSDT',
-            'FLMUSDT', 'FUNUSDT', 'HOTUSDT', 'ICPUSDT', 'IOTAUSDT', 'MANAUSDT', 'MBOXUSDT',
-            'MINAUSDT', 'QTUMUSDT', 'REEFUSDT', 'RVNUSDT', 'RUNEUSDT', 'SANDUSDT', 'SOLUSDT',
-            'TRBUSDT', 'ALICEUSDT', 'GALAUSDT', 'ROSEUSDT', 'CRVUSDT', 'DOTUSDT', 'HBARUSDT']
-
-    intervals = ['3MINUTE', '5MINUTE', '1HOUR', '4HOUR', '1DAY', '1WEEK', '1MONTH']
-    dbname = 'DEVSELECTED'
+    symbol, intervals = coin_details()
+    dbname = 'DEVSELECTEDLIVE_15JAN'
     writetoSQLite(symbol, intervals, dbname)

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
+    <data-source source="LOCAL" name="DEVSELECTED_15JAN" uuid="d022c02e-1b05-45ee-a149-b1083d18a107">
+      <driver-ref>sqlite.xerial</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
+      <jdbc-url>jdbc:sqlite:E:\Binance\history\DBDEV\DEVSELECTED_15JAN.db</jdbc-url>
+    </data-source>
+  </component>
+</project>

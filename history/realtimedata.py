@@ -8,7 +8,7 @@ from binance.client import Client
 import datetime
 from timeit import default_timer as timer
 import sqlite3
-
+from data.coins import coin_details
 """IF NOT SUCCESSFUL THEN https://www.geeksforgeeks.org/python-schedule-library/"""
 def getPairs(client):
     """This part creates the list of coin pairs that are listed on Binance"""
@@ -48,16 +48,14 @@ def datacleaning(line):
     return [str(pd.to_datetime(line[6], unit='ms')), line[1], line[2], line[3], line[4], line[5], str(pd.to_datetime(line[6], unit='ms'))]
 
 def job(client, symbol, interval, dbname):
-
     t = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
     interval_function = "Client.KLINE_INTERVAL_" + interval
     start = timer()
     counter = 0
-    connection = sqlite3.connect('./DBDEV/' + dbname + '.db')  # creates a new database if there is none.
-    cursor = connection.cursor()
     for sym in symbol:
+        connection = sqlite3.connect('./DBDEV/' + dbname + '.db')  # creates a new database if there is none.
+        cursor = connection.cursor()
         counter += 1
-        print(sym + ' ' + str(counter))
         tablename = sym + interval
         if tablename.startswith('1'):
             tablename = tablename.strip('1')
@@ -66,7 +64,7 @@ def job(client, symbol, interval, dbname):
         candletime1 = pd.to_datetime(candles[-1][6], unit='ms')
         candletime2 = pd.to_datetime(candles[-2][6], unit='ms')
         servertime = pd.to_datetime(client.get_server_time()['serverTime'], unit='ms')
-        print(f'server time is {servertime},' + interval + f' interval datetime -2 {candletime2},' + interval +
+        print(f'{sym} {counter} server time is {servertime},' + interval + f' interval datetime -2 {candletime2},' + interval +
                f' interval datetime -1 {candletime1}')
         if (pd.to_datetime(candles[-1][6], unit='ms') > pd.to_datetime(client.get_server_time()['serverTime'], unit='ms')):
             candles = candles[-2]
@@ -87,13 +85,8 @@ def job(client, symbol, interval, dbname):
 if __name__ == '__main__':
     binance_api, binance_secret = api_keys()
     client = Client(binance_api, binance_secret)
-    dbname = 'DEVSELECTED'
-    #symbol = getPairs(client)
-    symbol=['BTCUSDT', 'ETHUSDT', 'ONEUSDT', 'FTMUSDT', 'SYSUSDT', 'MATICUSDT', 'AXSUSDT',
-            'AGLDUSDT', 'AVAXUSDT', 'BALUSDT', 'BNBUSDT', 'CELOUSDT', 'DENTUSDT', 'FILUSDT',
-            'FLMUSDT', 'FUNUSDT', 'HOTUSDT', 'ICPUSDT', 'IOTAUSDT', 'MANAUSDT', 'MBOXUSDT',
-            'MINAUSDT', 'QTUMUSDT', 'REEFUSDT', 'RVNUSDT', 'RUNEUSDT', 'SANDUSDT', 'SOLUSDT',
-            'TRBUSDT', 'ALICEUSDT', 'GALAUSDT', 'ROSEUSDT', 'CRVUSDT', 'DOTUSDT', 'HBARUSDT']
+    dbname = 'DEVSELECTEDLIVE_15JAN'
+    symbol, intervals = coin_details()
     scheduler = BlockingScheduler()
     # Run every minute at 22 o'clock a day job Method
     scheduler.add_job(job, 'cron', minute='*/3', args=[client, symbol, '3MINUTE', dbname])
@@ -102,7 +95,6 @@ if __name__ == '__main__':
     scheduler.add_job(job, 'cron', day='*/1', args=[client, symbol, '1DAY', dbname])
     scheduler.add_job(job, 'cron', week='*/1', args=[client, symbol, '1WEEK', dbname])
     scheduler.add_job(job, 'cron', month='*',  args=[client, symbol, '1MONTH', dbname])
-
     # # Run once a day at 22 and 23:25 job Method
     # scheduler.add_job(job, 'cron', hour='14-15', minute='14', args=['job2'])
     scheduler.start()

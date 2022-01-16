@@ -193,14 +193,18 @@ class indicators():
 
 if __name__ == '__main__':
     symbol, intervals = coin_details()
-    pair = "ETHUSDT"
+    pair = "BTCUSDT"
     interval = intervals[0]
     engine = sqlalchemy.create_engine('sqlite:///../history/DBDEV/DEVSELECTED.db')
+    # engine1 = sqlalchemy.create_engine('sqlite:///../history/DB/' + pair + "1" + '.db')
     chart = plotter()
+    chart1 = plotter()
     prices = pd.read_sql('SELECT * FROM ' + pair + interval + '', engine)
+    # prices1 = pd.read_sql('SELECT * FROM ' + pair + interval + '', engine1)
     chart.pricetime=prices['close_time']
     """Does required calculations based on indicator types"""
     chart.RSI, chart.RSIbasedMA = indicators.RSI(prices)
+    # chart1.RSI, chart1.RSIbasedMA = indicators.RSI(prices1)
     chart.macd, chart.macdsignal, chart.macdhist = indicators.MACD(prices)
     """returns buy and sell dates of indicators accordingly and plots buy/sell ticks and signals"""
     chart.macdbuy, chart.macdsell = conditions.MACDcond(chart)
