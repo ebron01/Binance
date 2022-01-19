@@ -8,13 +8,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 from slackinform import Inform
 from data.coins import coin_details
-from datetime import datetime, timedelta
-import matplotlib.dates as mdates
-
-class plotter():
+from datetime import datetime
+from indics import indicator
+"""
+class Plotter():
     def __init__(self, RSI=None, RSIbasedMA=None, macd=None, macdsignal=None, macdhist=None,
                  buy=None, sell=None, macdbuy=None, macdsell=None, rsibuy=None, rsisell=None,
-                 currenttime=None, pricetime=None):
+                 currenttime=None, pricetime=None, obv=None, kauf=None, obv_ema=None, chande=None,
+                 bbands=None, dmi=None, dmiplus=None, dmineg=None):
         self.RSI = RSI
         self.RSIbasedMA = RSIbasedMA
         self.macd = macd
@@ -28,7 +29,14 @@ class plotter():
         self.rsisell = rsisell
         self.currenttime = currenttime
         self.pricetime = pricetime
-
+        self.obv = obv
+        self.kauf = kauf
+        self.obv_ema = obv_ema
+        self.chande = chande
+        self.bbands = bbands
+        self.dmi = dmi
+        self.dmineg = dmineg
+        self.dmiplus = dmiplus
     def plotRSI(self, pair, interval):
         plt.figure(figsize=(30, 5))
         plt.plot(self.RSI, label='RSI', c='r')
@@ -85,6 +93,7 @@ class plotter():
         now = datetime.now()
         self.current_time = now.strftime("%H:%M:%S")
         return self.current_time
+"""
 
 class conditions():
     def MACDcond(results):
@@ -97,26 +106,26 @@ class conditions():
                 print(f"{i} is nan")
                 continue
             if results.macd.iloc[i] >= results.macdsignal.iloc[i] and results.macd.iloc[i - 1] <= results.macdsignal.iloc[i - 1]:
-                data = {'MACD :': results.macd.iloc[i], 'MACDSIGNAL :': results.macdsignal.iloc[i], 'MACDHIST :': results.macdhist.iloc[i], 'MACDdate :': prices['close_time'][i]}
+                data = {'MACD :': results.macd.iloc[i], 'MACDSIGNAL :': results.macdsignal.iloc[i], 'MACDHIST :': results.macdhist.iloc[i], 'MACDdate :': results.pricetime.iloc[i]}
                 buy.update({i: data})
             elif results.macd.iloc[i] <= results.macdsignal.iloc[i] and results.macd.iloc[i - 1] >= results.macdsignal.iloc[i - 1]:
-                data = {'MACD :': results.macd.iloc[i], 'MACDSIGNAL :': results.macdsignal.iloc[i], 'MACDHIST :': results.macdhist.iloc[i], 'MACDdate :': prices['close_time'][i]}
+                data = {'MACD :': results.macd.iloc[i], 'MACDSIGNAL :': results.macdsignal.iloc[i], 'MACDHIST :': results.macdhist.iloc[i], 'MACDdate :': results.pricetime.iloc[i]}
                 sell.update({i: data})
         return buy, sell
     def RSIcond(results):
         buy = {}
         sell = {}
-        for i in range(len(results.RSI)):
+        for i in range(len(results.rsi)):
             if i == 0:
                 continue
-            if np.isnan(results.RSI.iloc[i]) | np.isnan(results.RSIbasedMA.iloc[i]):
+            if np.isnan(results.rsi.iloc[i]) | np.isnan(results.rsibasedma.iloc[i]):
                 print(f"{i} is nan")
                 continue
-            if results.RSI.iloc[i] >= results.RSIbasedMA.iloc[i] and results.RSI.iloc[i - 1] <= results.RSIbasedMA.iloc[i - 1]:
-                data = {'RSI :': results.RSI.iloc[i], 'RSIbasedMA :': results.RSIbasedMA.iloc[i], 'RSIdate :': prices['close_time'][i]}
+            if results.rsi.iloc[i] >= results.rsibasedma.iloc[i] and results.rsi.iloc[i - 1] <= results.rsibasedma.iloc[i - 1]:
+                data = {'RSI :': results.rsi.iloc[i], 'RSIbasedMA :': results.rsibasedma.iloc[i], 'RSIdate :': results.pricetime.iloc[i]}
                 buy.update({i: data})
-            elif results.RSI.iloc[i] <= results.RSIbasedMA.iloc[i] and results.RSI.iloc[i - 1] >= results.RSIbasedMA.iloc[i - 1]:
-                data = {'RSI :': results.RSI.iloc[i], 'RSIbasedMA :': results.RSIbasedMA.iloc[i], 'RSIdate :': prices['close_time'][i]}
+            elif results.rsi.iloc[i] <= results.rsibasedma.iloc[i] and results.rsi.iloc[i - 1] >= results.rsibasedma.iloc[i - 1]:
+                data = {'RSI :': results.rsi.iloc[i], 'RSIbasedMA :': results.rsibasedma.iloc[i], 'RSIdate :': results.pricetime.iloc[i]}
                 sell.update({i: data})
         return buy, sell
     def MACDRSIcond(results):
@@ -131,24 +140,24 @@ class conditions():
                 continue
             if openposition == False:
                 if (results.macd.iloc[i] >= results.macdsignal.iloc[i] and results.macd.iloc[i - 1] <= results.macdsignal.iloc[i - 1] \
-                    and results.RSI.iloc[i] >= results.RSIbasedMA.iloc[i]) \
+                    and results.rsi.iloc[i] >= results.rsibasedma.iloc[i]) \
                         or \
-                    (results.RSI.iloc[i] >= results.RSIbasedMA.iloc[i] and results.RSI.iloc[i - 1] <= results.RSIbasedMA.iloc[i - 1] \
+                    (results.rsi.iloc[i] >= results.rsibasedma.iloc[i] and results.rsi.iloc[i - 1] <= results.rsibasedma.iloc[i - 1] \
                     and results.macd.iloc[i] >= results.macdsignal.iloc[i]):
                     data = {'MACD :': results.macd.iloc[i], 'MACDSIGNAL :': results.macdsignal.iloc[i],
-                            'MACDHIST :': results.macdhist.iloc[i], 'MACDdate :': prices['close_time'][i],
-                            'RSI :': results.RSI.iloc[i], 'RSIbasedMA :': results.RSIbasedMA.iloc[i],
-                            'RSIdate :': prices['close_time'][i]}
+                            'MACDHIST :': results.macdhist.iloc[i], 'MACDdate :': results.pricetime.iloc[i],
+                            'RSI :': results.rsi.iloc[i], 'RSIbasedMA :': results.rsibasedma.iloc[i],
+                            'RSIdate :': results.pricetime.iloc[i]}
                     buy.update({i: data})
                     openposition = True
             if openposition == True:
                 if (results.macd.iloc[i] <= results.macdsignal.iloc[i] and results.macd.iloc[i - 1] >= results.macdsignal.iloc[i - 1]) \
                     or \
-                    (results.RSI.iloc[i] <= results.RSIbasedMA.iloc[i] and results.RSI.iloc[i - 1] >= results.RSIbasedMA.iloc[i - 1]):
+                    (results.rsi.iloc[i] <= results.rsibasedma.iloc[i] and results.rsi.iloc[i - 1] >= results.rsibasedma.iloc[i - 1]):
                         data = {'MACD :': results.macd.iloc[i], 'MACDSIGNAL :': results.macdsignal.iloc[i],
-                                'MACDHIST :': results.macdhist.iloc[i], 'MACDdate :': prices['close_time'][i],
-                                'RSI :': results.RSI.iloc[i], 'RSIbasedMA :': results.RSIbasedMA.iloc[i],
-                                'RSIdate :': prices['close_time'][i]}
+                                'MACDHIST :': results.macdhist.iloc[i], 'MACDdate :': results.pricetime.iloc[i],
+                                'RSI :': results.rsi.iloc[i], 'RSIbasedMA :': results.rsibasedma.iloc[i],
+                                'RSIdate :': results.pricetime.iloc[i]}
                         sell.update({i: data})
                         openposition = False
         return buy, sell
@@ -160,69 +169,48 @@ class conditions():
         sell_prices = results.macd.iloc[list(results.sell.keys())]
         print()
 
-class indicators():
-    def RSI(prices):
-        #TODO:RSI - needs conditions, needs an informer
-        """This is RSI plot, tradingview
-        Default time period for RSI oscillator is 14 timestamps.
-        """
-        RSI = talib.RSI(prices.close_price, timeperiod=14)
-        RSIbasedMA = talib.MA(RSI, timeperiod=14)
-        return RSI, RSIbasedMA
-
-    def MACD(prices):
-        #TODO:MACD - needs amendment in notify
-        """
-        The basic bullish signal (buy sign) occurs when the MACD line (the blue line) crosses above the signal line (the orange
-        line), and the basic bearish signal (sell sign) is generated when the MACD crosses below the signal line. Traders who
-        attempt to profit from bullish MACD crosses that occur when the indicator is below zero should be aware that they are
-        attempting to profit from a change in momentum direction, while the moving averages are still suggesting that the
-        security could experience a short-term sell-off. This bullish crossover can often correctly predict the reversal in the
-        trend, as shown below, but it is often considered riskier than if the MACD were above zero.
-        https://www.investopedia.com/terms/m/macd.asp
-        macd=12-Period EMA − 26-Period EMA of close prices
-        macdsignal=9-Period EMA of macd not close prices
-        macdhist=macd-macdsignal
-        Limitations:  A slowdown in the momentum—sideways movement or slow trending movement—of the price will cause
-        the MACD to pull away from its prior extremes and gravitate toward the zero lines even in the absence of a true
-        reversal.
-        MACD is a lagging indicator.All of the data used in MACD is based on the historical price action of the stock.
-        """
-        macd, macdsignal, macdhist = talib.MACD(prices.close_price, fastperiod=12, slowperiod=26, signalperiod=9)
-        return macd, macdsignal, macdhist
-
 if __name__ == '__main__':
     symbol, intervals = coin_details()
     pair = "BTCUSDT"
-    interval = intervals[0]
-    engine = sqlalchemy.create_engine('sqlite:///../history/DBDEV/DEVSELECTED.db')
-    # engine1 = sqlalchemy.create_engine('sqlite:///../history/DB/' + pair + "1" + '.db')
-    chart = plotter()
-    chart1 = plotter()
+    interval = intervals[3]
+    engine = sqlalchemy.create_engine('sqlite:///../history/DBDEV/DEVSELECTED_15JAN.db')
     prices = pd.read_sql('SELECT * FROM ' + pair + interval + '', engine)
-    # prices1 = pd.read_sql('SELECT * FROM ' + pair + interval + '', engine1)
-    chart.pricetime=prices['close_time']
+    # prices = prices[-200:]
     """Does required calculations based on indicator types"""
-    chart.RSI, chart.RSIbasedMA = indicators.RSI(prices)
-    # chart1.RSI, chart1.RSIbasedMA = indicators.RSI(prices1)
-    chart.macd, chart.macdsignal, chart.macdhist = indicators.MACD(prices)
-    """returns buy and sell dates of indicators accordingly and plots buy/sell ticks and signals"""
+    indicators = indicator.Indicators()
+    # chart = indicator.Plotter()
+    # chart.pricetime=prices['close_time']
+    result = indicator.Calculate.calculator(indicators, prices)
+    """
+    chart.RSI, chart.RSIbasedMA = indicator.Indicators.RSI(prices)
+    chart.macd, chart.macdsignal, chart.macdhist = indicator.Indicators.MACD(prices)
+    chart.obv, chart.obv_ema = indicator.Indicators.OBV(prices) #different obv and ema but obv-ema of the chart and the function is same.
+    chart.kauf = indicator.Indicators.KAUF(prices) #almost the same
+    chart.chande = indicator.Indicators.Chande(prices)
+    chart.bbandupper, chart.bbandmiddle, chart.bbandlittle = indicator.Indicators.BollingerBands(prices)
+    chart.dmi, chart.dmineg, chart.dmiplus = indicator.Indicators.DMI(prices)
     chart.macdbuy, chart.macdsell = conditions.MACDcond(chart)
-    plotter.plotMACD(chart, pair, interval)
+    chart.plotMACD(chart, pair, interval)
     chart.rsibuy, chart.rsisell = conditions.RSIcond(chart)
-    plotter.plotRSI(chart, pair, interval)
+    chart.plotRSI(chart, pair, interval)
     chart.buy, chart.sell = conditions.MACDRSIcond(chart)
-    plotter.plotMACDRSI(chart, pair, interval)
+    chart.plotMACDRSI(chart, pair, interval)
+    chart.macdbuy, chart.macdsell = conditions.MACDcond(chart)
+    chart.plotMACD(chart, pair, interval)
+    chart.rsibuy, chart.rsisell = conditions.RSIcond(chart)
+    chart.plotRSI(chart, pair, interval)
+    chart.buy, chart.sell = conditions.MACDRSIcond(chart)
+    chart.plotMACDRSI(chart, pair, interval)
+    """
 
+    """returns buy and sell dates of indicators accordingly and plots buy/sell ticks and signals"""
+    result.macdbuy, result.macdsell = conditions.MACDcond(result)
+    indicator.Plotter.plotMACD(result, pair, interval)
+    result.rsibuy, result.rsisell = conditions.RSIcond(result)
+    indicator.Plotter.plotRSI(result, pair, interval)
+    result.buy, result.sell = conditions.MACDRSIcond(result)
+    indicator.Plotter.plotMACDRSI(result, pair, interval)
     # profit = conditions.profits(chart)
-
     """needs some amendment in slackinformer function"""
-    MACD_info = Inform(message1=chart)
+    MACD_info = Inform(message1=result)
     Inform.MACD_informer(MACD_info)
-
-
-
-
-
-
-

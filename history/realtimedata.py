@@ -1,14 +1,15 @@
+import sys
+sys.path.append('C:/Users/a/PycharmProjects/Binance/')
+sys.path.append('C:/Users/a/PycharmProjects/Binance/indicators/')
 import time
 from apscheduler.schedulers.blocking import BlockingScheduler
 import pandas as pd
-import matplotlib.pyplot as plt
-import sqlalchemy
 from keys import api_keys
 from binance.client import Client
-import datetime
 from timeit import default_timer as timer
 import sqlite3
 from data.coins import coin_details
+
 """IF NOT SUCCESSFUL THEN https://www.geeksforgeeks.org/python-schedule-library/"""
 def getPairs(client):
     """This part creates the list of coin pairs that are listed on Binance"""
@@ -89,7 +90,7 @@ if __name__ == '__main__':
     symbol, intervals = coin_details()
     scheduler = BlockingScheduler()
     # Run every minute at 22 o'clock a day job Method
-    scheduler.add_job(job, 'cron', minute='*/3', args=[client, symbol, '3MINUTE', dbname])
+    scheduler.add_job(job, 'cron', minute='*/30', args=[client, symbol, '30MINUTE', dbname])
     scheduler.add_job(job, 'cron', hour='*/1', args=[client, symbol, '1HOUR', dbname])
     scheduler.add_job(job, 'cron', hour='*/4', args=[client, symbol, '4HOUR', dbname])
     scheduler.add_job(job, 'cron', day='*/1', args=[client, symbol, '1DAY', dbname])

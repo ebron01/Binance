@@ -41,5 +41,5 @@ if __name__ == '__main__':
     FOR SELECTED COINS OUT OF EVERY COIN OTHER THAN DEAD ONES
     """
     symbol, intervals = coin_details()
-    dbname = 'DEVSELECTEDLIVE_15JAN'
+    dbname = 'DEVSELECTED_15JAN'
     writetoSQLite(symbol, intervals, dbname)

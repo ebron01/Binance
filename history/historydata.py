@@ -1,9 +1,13 @@
+import sys
+sys.path.append('C:/Users/a/PycharmProjects/Binance/')
 from keys import api_keys
 from binance.client import Client
 import csv
 import sqlite3
 import pandas as pd
+sys.path.append('C:/Users/a/PycharmProjects/Binance/indicators/')
 from data.coins import coin_details
+
 
 def datacleaning(klines):
     cleanklines = []
@@ -79,7 +83,8 @@ def writetoSQLite(symbol, intervals, dbname):
             eval(interval_function) creates a call-function name as Client.KLINE_INTERVAL_1DAY
             """
             print(f"started getting klines of {sym} {interval}")
-            klines = client.get_historical_klines(sym, eval(interval_function), "2021-01-15 19:47:59.999000", "2022-01-15 20:17:59.999000")
+            #klines = client.get_historical_klines(sym, eval(interval_function), "2021-01-15 19:47:59.999000", end_str="2022-01-15 07:59:59.999000")
+            klines = client.get_historical_klines(sym, eval(interval_function), "1 Jan, 2017", "2022-01-16 07:59:59.999000")
             print(f"ended getting klines of {sym} {interval}")
             tablename = sym+interval
             """ RETURN DATA FORMAT OF client.get_historical_klines
@@ -111,7 +116,7 @@ def writetoSQLite(symbol, intervals, dbname):
             for line in cleanklines:
                 cursor.execute("INSERT INTO " + tablename + " VALUES(?, ?, ?, ?, ?, ?, ?)", (line[0], line[1], line[2], line[3], line[4], line[5], line[6]))
                 connection.commit()
-            print(f'Doing {interval}, Done {counter} out of {len(symbol)} ')
+            print(f'Doing {interval}, Done {counter} out of {len(symbol) * len(intervals)} ')
 
 if __name__ == '__main__':
     binance_api, binance_secret = api_keys()

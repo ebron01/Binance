@@ -5,6 +5,6 @@ def coin_details():
           'MINAUSDT', 'QTUMUSDT', 'REEFUSDT', 'RVNUSDT', 'RUNEUSDT', 'SANDUSDT', 'SOLUSDT',
           'TRBUSDT', 'ALICEUSDT', 'GALAUSDT', 'ROSEUSDT', 'CRVUSDT', 'DOTUSDT', 'HBARUSDT']
 
-    intervals = ['3MINUTE', '1HOUR', '4HOUR', '1DAY', '1WEEK', '1MONTH']
+    intervals = ['30MINUTE', '1HOUR', '4HOUR', '1DAY', '1WEEK', '1MONTH']
 
     return symbol, intervals
