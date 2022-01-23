@@ -17,8 +17,8 @@ async def main(symbol):
         while True:
             lastdata = await receiver.recv()
             lastdata = json.loads(lastdata)['data']
-            if float(initialdata['c']) - float(lastdata['c']) > 200\
-                    or float(lastdata['c']) - float(initialdata['c']) > 200:
+            if float(initialdata['c']) - float(lastdata['c']) > 100\
+                    or float(lastdata['c']) - float(initialdata['c']) > 100:
                 informer = Inform(initialdata, "BTC'nin ilk değeri: ", lastdata, 'son değeri:')
                 Inform.notifyalarm(informer)
                 initialdata = lastdata
@@ -37,6 +37,9 @@ if __name__ == '__main__':
     except:
         informer = Inform(message1='bağlantı yenilendi')
         Inform.general_notify(informer)
+        binance_api, binance_secret = api_keys()
+        client = Client(binance_api, binance_secret)
+        symbol = 'BTCUSDT'
         stream = websockets.connect('wss://stream.binance.com:9443/stream?streams=' + symbol.lower() + '@miniTicker')
         loop = asyncio.get_event_loop()
         loop.run_until_complete(main(symbol))

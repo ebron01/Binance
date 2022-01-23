@@ -9,6 +9,8 @@ from binance.client import Client
 from timeit import default_timer as timer
 import sqlite3
 from data.coins import coin_details
+import sqlalchemy
+from indics import indicator
 
 """IF NOT SUCCESSFUL THEN https://www.geeksforgeeks.org/python-schedule-library/"""
 def getPairs(client):
@@ -73,8 +75,35 @@ def job(client, symbol, interval, dbname):
             candles = candles[-1]
         cleankline = datacleaning(candles)
         try:
-            cursor.execute("INSERT INTO " + tablename + " VALUES(?, ?, ?, ?, ?, ?, ?)",
+            """this part inserts prices to database first"""
+            # cursor.execute("INSERT INTO " + tablename + " VALUES(?, ?, ?, ?, ?, ?, ?)",
+            #            (cleankline[0], cleankline[1], cleankline[2], cleankline[3], cleankline[4], cleankline[5], cleankline[6]))
+            cursor.execute("INSERT INTO " + tablename + "(open_time , open_price, high_price, low_price, close_price, volume, close_time) VALUES(?, ?, ?, ?, ?, ?, ?)",
                        (cleankline[0], cleankline[1], cleankline[2], cleankline[3], cleankline[4], cleankline[5], cleankline[6]))
+            connection.commit()
+            """this part reads all prices from database"""
+            engine = sqlalchemy.create_engine('sqlite:///./DBDEV/' + dbname + '.db')
+            prices = pd.read_sql('SELECT s.open_time , s.open_price, s.high_price, s.low_price, s.close_price, s.volume, s.close_time FROM ' + tablename + ' s', engine)
+            """Does required calculations based on indicator types"""
+            indicators = indicator.Indicators()
+            result = indicator.Calculate.calculator(indicators, prices)
+            result_keys = result.keys()
+            """fills nan values with 0 to be able to write to database"""
+            for i in range(len(result_keys)):
+                try:
+                    result_keys[i] = result_keys[i].fillna(0)
+                except:
+                    continue
+            """inserts all calculated ta to the affiliated columns"""
+            cursor.execute(f'''UPDATE {tablename} SET rsi=?, rsibasedma=?,  macd=?, macdsignal=?, macdhist=?, pricetime=?,
+                    obv=?, kauf=?, obv_ema=?, chande=?, bbandupper=?, bbandmiddle=?, bbandlittle=?, dmi=?, dmineg=?, dmiplus=?, closeprice=? WHERE open_time=?''',
+                           (result.rsi.iloc[-1:].values[0], result.rsibasedma.iloc[-1:].values[0], result.macd.iloc[-1:].values[0],
+                            result.macdsignal.iloc[-1:].values[0],
+                            result.macdhist.iloc[-1:].values[0], result.pricetime.iloc[-1:].values[0], result.obv.iloc[-1:].values[0], result.kauf.iloc[-1:].values[0],
+                            result.obv_ema.iloc[-1:].values[0], result.chande.iloc[-1:].values[0], result.bbandupper.iloc[-1:].values[0],
+                            result.bbandmiddle.iloc[-1:].values[0], result.bbandlittle.iloc[-1:].values[0], result.dmi.iloc[-1:].values[0],
+                            result.dmineg.iloc[-1:].values[0], result.dmiplus.iloc[-1:].values[0], result.closeprice.iloc[-1:].values[0],
+                            result.pricetime.iloc[-1:].values[0]))
             connection.commit()
             print(f"local execution time {t}")
         except:
@@ -86,7 +115,7 @@ def job(client, symbol, interval, dbname):
 if __name__ == '__main__':
     binance_api, binance_secret = api_keys()
     client = Client(binance_api, binance_secret)
-    dbname = 'DEVSELECTEDLIVE_15JAN'
+    dbname = 'DEVSELECTED_15JAN'
     symbol, intervals = coin_details()
     scheduler = BlockingScheduler()
     # Run every minute at 22 o'clock a day job Method

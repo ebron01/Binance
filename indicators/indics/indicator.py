@@ -8,7 +8,7 @@ class Indicators():
     def __init__(self, rsi=None, rsibasedma=None, macd=None, macdsignal=None, macdhist=None,
                  buy=None, sell=None, macdbuy=None, macdsell=None, rsibuy=None, rsisell=None,
                  currenttime=None, pricetime=None, obv=None, kauf=None, obv_ema=None, chande=None,
-                 bbands=None, dmi=None, dmiplus=None, dmineg=None):
+                 bbandupper=None, bbandmiddle=None, bbandlittle=None, dmi=None, dmiplus=None, dmineg=None, closeprice=None):
         self.rsi = rsi
         self.rsibasedma = rsibasedma
         self.macd = macd
@@ -26,11 +26,18 @@ class Indicators():
         self.kauf = kauf
         self.obv_ema = obv_ema
         self.chande = chande
-        self.bbands = bbands
+        self.bbandupper = bbandupper
+        self.bbandmiddle = bbandmiddle
+        self.bbandlittle = bbandlittle
         self.dmi = dmi
         self.dmineg = dmineg
         self.dmiplus = dmiplus
-
+        self.closeprice = closeprice
+    def keys(self):
+        return [self.rsi, self.rsibasedma, self.macd, self.macdsignal, self.macdhist,
+                 self.buy, self.sell, self.macdbuy, self.macdsell, self.rsibuy, self.rsisell,
+                 self.currenttime, self.pricetime, self.obv, self.kauf, self.obv_ema, self.chande,
+                 self.bbandupper, self.bbandmiddle, self.bbandlittle, self.dmi, self.dmiplus, self.dmineg, self.closeprice]
     def RSI(prices):
         #TODO:RSI - needs conditions, needs an informer
         """This is RSI plot, tradingview
@@ -120,6 +127,8 @@ class Indicators():
 
     def pricetime(prices):
         return prices.close_time
+    def price(prices):
+        return prices.close_price
 
 class Calculate(Indicators):
     def calculator(self, prices):
@@ -131,6 +140,7 @@ class Calculate(Indicators):
         self.bbandupper, self.bbandmiddle, self.bbandlittle = Indicators.BollingerBands(prices)
         self.dmi, self.dmineg, self.dmiplus = Indicators.DMI(prices)
         self.pricetime = Indicators.pricetime(prices)
+        self.closeprice = Indicators.price(prices)
         return self
 
 class Plotter(Indicators):

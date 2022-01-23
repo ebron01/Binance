@@ -11,7 +11,8 @@ class Inform:
 
     def general_notify(self):
         # url = "<Webhook_URL>"
-        url = "https://hooks.slack.com/services/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"
+        # url = "https://hooks.slack.com/services/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"
+        url = "https://hooks.slack.com/services/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"
         # message = ("A Sample Message")
         # title = (f"New Incoming Message :zap:")
         slack_data = {
