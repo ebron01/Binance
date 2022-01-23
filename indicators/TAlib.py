@@ -183,9 +183,11 @@ class conditions():
                         sell.update({i: data})
                         openposition = False
         return buy, sell
-    def MACDRSIcondreal(results):
-        engine = sqlalchemy.create_engine('sqlite:///../history/DBDEV/DEVSELECTED_15JAN.db')
+    def MACDRSIcondreal(results, engine):
+        # engine = sqlalchemy.create_engine('sqlite:///../history/DBDEV/DEVSELECTED_15JAN.db')
+        print("MACDRSIcondreal started")
         openposition = False
+        print("position is closed")
         if openposition == False:
             while True:
                 if (results.macd.iloc[-1:] >= results.macdsignal.iloc[-1:] and results.macd.iloc[-2:] <= results.macdsignal.iloc[-2:] \
@@ -193,6 +195,7 @@ class conditions():
                         or \
                     (results.rsi.iloc[-1:] >= results.rsibasedma.iloc[-1:] and results.rsi.iloc[-2:] <= results.rsibasedma.iloc[-2:] \
                     and results.macd.iloc[-1:] >= results.macdsignal.iloc[-1:]):
+                    print("buy condition has happened")
                     data = {'MACD :': results.macd.iloc[-1:], 'MACDSIGNAL :': results.macdsignal.iloc[-1:],
                             'MACDHIST :': results.macdhist.iloc[-1:], 'MACDdate :': results.pricetime.iloc[-1:],
                             'RSI :': results.rsi.iloc[-1:], 'RSIbasedMA :': results.rsibasedma.iloc[-1:],
@@ -205,18 +208,21 @@ class conditions():
                     break
                 results = conditions.indreturner(engine)
         if openposition == True:
+            print("searching for sell price")
             while True:
                 time.sleep(conditions.sleepint(interval))
                 newresults = conditions.indreturner(engine)
                 if (newresults.macd.iloc[-1:] <= newresults.macdsignal.iloc[-1:] and newresults.macd.iloc[-2:] >= newresults.macdsignal.iloc[-2:]) \
                     or \
                     (newresults.rsi.iloc[-1:] <= newresults.rsibasedma.iloc[-1:] and newresults.rsi.iloc[-2:] >= newresults.rsibasedma.iloc[-2:]):
+                    print("sell condition has happened")
                     data = {'MACD :': newresults.macd.iloc[-1:], 'MACDSIGNAL :': newresults.macdsignal.iloc[-1:],
                             'MACDHIST :': newresults.macdhist.iloc[-1:], 'MACDdate :': newresults.pricetime.iloc[-1:],
                             'RSI :': newresults.rsi.iloc[-1:], 'RSIbasedMA :': newresults.rsibasedma.iloc[-1:],
                             'RSIdate :': newresults.pricetime.iloc[-1:]}
                     informer = Inform(message1=f'Selling price is {newresults.closeprice[-1:]}')
                     Inform.general_notify(informer)
+                    print("open position changed to false")
                     openposition = False
                     with open('buysell.json', 'r+') as f:
                         dic = json.load(f)
@@ -224,7 +230,7 @@ class conditions():
                     with open('buysell.json', 'w+') as f:
                         json.dump(dic, f)
                     break
-
+        print("MACDRSIcondreal finished")
     #TODO: create a function for profits
     def profits(results):
         buy_keys = list(results.buy.keys())
@@ -247,27 +253,7 @@ if __name__ == '__main__':
     # chart.pricetime=prices['close_time']
     result = indicator.Calculate.calculator(indicators, prices)
     date = result.pricetime
-    """
-    chart.RSI, chart.RSIbasedMA = indicator.Indicators.RSI(prices)
-    chart.macd, chart.macdsignal, chart.macdhist = indicator.Indicators.MACD(prices)
-    chart.obv, chart.obv_ema = indicator.Indicators.OBV(prices) #different obv and ema but obv-ema of the chart and the function is same.
-    chart.kauf = indicator.Indicators.KAUF(prices) #almost the same
-    chart.chande = indicator.Indicators.Chande(prices)
-    chart.bbandupper, chart.bbandmiddle, chart.bbandlittle = indicator.Indicators.BollingerBands(prices)
-    chart.dmi, chart.dmineg, chart.dmiplus = indicator.Indicators.DMI(prices)
-    chart.macdbuy, chart.macdsell = conditions.MACDcond(chart)
-    chart.plotMACD(chart, pair, interval)
-    chart.rsibuy, chart.rsisell = conditions.RSIcond(chart)
-    chart.plotRSI(chart, pair, interval)
-    chart.buy, chart.sell = conditions.MACDRSIcond(chart)
-    chart.plotMACDRSI(chart, pair, interval)
-    chart.macdbuy, chart.macdsell = conditions.MACDcond(chart)
-    chart.plotMACD(chart, pair, interval)
-    chart.rsibuy, chart.rsisell = conditions.RSIcond(chart)
-    chart.plotRSI(chart, pair, interval)
-    chart.buy, chart.sell = conditions.MACDRSIcond(chart)
-    chart.plotMACDRSI(chart, pair, interval)
-    """
+
     """returns buy and sell dates of indicators accordingly and plots buy/sell ticks and signals"""
     result.macdbuy, result.macdsell = conditions.MACDcond(result)
     indicator.Plotter.plotMACD(result, pair, interval)

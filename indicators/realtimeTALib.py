@@ -15,7 +15,7 @@ def job(symbol, interval, dbname):
     """Does required calculations based on indicator types"""
     indicators = indicator.Indicators()
     result = indicator.Calculate.calculator(indicators, prices)
-    conditions.MACDRSIcondreal(result)
+    conditions.MACDRSIcondreal(result, engine)
 
 if __name__ == '__main__':
     dbname = 'DEVSELECTED_15JAN'
