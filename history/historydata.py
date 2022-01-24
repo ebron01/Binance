@@ -83,8 +83,28 @@ def writetoSQLite(symbol, intervals, dbname):
             eval(interval_function) creates a call-function name as Client.KLINE_INTERVAL_1DAY
             """
             print(f"started getting klines of {sym} {interval}")
+            """This start and brings including start and end timestamps so beware to run after the end timestamp
+            otherwise will get unclosed end timestamp values"""
+            if interval == "30MINUTE":
+                start = '2022-01-22 18:29:59.999000'
+                end = '2022-01-23 18:59:59.999000'
+            elif interval == "1HOUR":
+                start = '2022-01-22 17:59:59.999000'
+                end = '2022-01-23 18:59:59.999000'
+            elif interval == "4HOUR":
+                start = '2022-01-21 23:59:59.999000'
+                end = '2022-01-23 15:59:59.999000'
+            elif interval == "1DAY":
+                start = '2022-01-21 23:59:59.999000'
+                end = '2022-01-22 23:59:59.999000'
+            elif interval == "1WEEK":
+                start = '2022-01-21 23:59:59.999000'
+                end = '2022-01-22 23:59:59.999000'
+            elif interval == "1MONTH":
+                start = '2022-01-21 23:59:59.999000'
+                end = '2022-01-22 23:59:59.999000'
             #klines = client.get_historical_klines(sym, eval(interval_function), "2021-01-15 19:47:59.999000", end_str="2022-01-15 07:59:59.999000")
-            klines = client.get_historical_klines(sym, eval(interval_function), "1 Jan, 2017", "2022-01-16 07:59:59.999000")
+            klines = client.get_historical_klines(sym, eval(interval_function), start, end)
             print(f"ended getting klines of {sym} {interval}")
             tablename = sym+interval
             """ RETURN DATA FORMAT OF client.get_historical_klines
@@ -114,15 +134,14 @@ def writetoSQLite(symbol, intervals, dbname):
             cleanklines = datacleaning(klines)
             print(f"inserting into {sym} {interval}")
             for line in cleanklines:
-                cursor.execute("INSERT INTO " + tablename + " VALUES(?, ?, ?, ?, ?, ?, ?)", (line[0], line[1], line[2], line[3], line[4], line[5], line[6]))
+                cursor.execute("INSERT INTO " + tablename + "(open_time , open_price, high_price, low_price, close_price, volume, close_time) VALUES(?, ?, ?, ?, ?, ?, ?)",
+                               (line[0], line[1], line[2], line[3], line[4], line[5], line[6]))
                 connection.commit()
             print(f'Doing {interval}, Done {counter} out of {len(symbol) * len(intervals)} ')
 
 if __name__ == '__main__':
     binance_api, binance_secret = api_keys()
     client = Client(binance_api, binance_secret)
-    # symbol = getPairs(client)
-    # interval = '1HOUR'
     symbol, intervals = coin_details()
     dbname = 'DEVSELECTED_15JAN'
     writetoSQLite(symbol, intervals, dbname)

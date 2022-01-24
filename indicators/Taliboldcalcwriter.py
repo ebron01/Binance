@@ -3,23 +3,20 @@ https://www.ta-lib.org/function.html
 """
 import sqlalchemy
 import pandas as pd
-from slackinform import Inform
 from data.coins import coin_details
 from indics import indicator
 import sqlite3
 
-
-
 if __name__ == '__main__':
     symbol, intervals = coin_details()
-    engine = sqlalchemy.create_engine('sqlite:///./../history/DBDEV/DEVSELECTED_15JAN_23.db')
-    timestamp = "2022-01-20 23:59:59.999000"
+    engine = sqlalchemy.create_engine('sqlite:///./../history/DBDEV/DEVSELECTED_15JAN.db')
+    # timestamp = "2022-01-20 23:59:59.999000"
     for pair in symbol:
         for interval in intervals:
             prices = pd.read_sql('SELECT s.open_time , s.open_price, s.high_price, s.low_price, s.close_price, s.volume, s.close_time FROM ' + pair + interval +
                 ' s', engine)
-            indexes = prices[prices['close_time'] > '2022-01-20 23:59:59.999000'].index
-            prices = prices.drop(indexes)
+            # indexes = prices[prices['close_time'] > '2022-01-20 23:59:59.999000'].index
+            # prices = prices.drop(indexes)
             """Does required calculations based on indicator types"""
             indicators = indicator.Indicators()
             result = indicator.Calculate.calculator(indicators, prices)
@@ -32,7 +29,7 @@ if __name__ == '__main__':
                     continue
             """inserts all calculated ta to the affiliated columns"""
             tablename = pair + interval
-            connection = sqlite3.connect('./../history/DBDEV/DEVSELECTED_15JAN_23.db')  # creates a new database if there is none.
+            connection = sqlite3.connect('./../history/DBDEV/DEVSELECTED_15JAN.db')  # creates a new database if there is none.
             cursor = connection.cursor()
             print(f'Started insert of {tablename}')
             for i in range(len(result.pricetime)):
@@ -51,5 +48,8 @@ if __name__ == '__main__':
                                 result.closeprice.iloc[i],
                                 result.pricetime.iloc[i]))
                 connection.commit()
-        print(f'Done insert of {tablename}')
+                if i % 10000 == 0 :
+                    print(f'Done {i}')
+            print(f'Done insert of {tablename}')
+
 
