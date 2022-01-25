@@ -83,7 +83,7 @@ def writetoSQLite(symbol, intervals, dbname):
             eval(interval_function) creates a call-function name as Client.KLINE_INTERVAL_1DAY
             """
             print(f"started getting klines of {sym} {interval}")
-            """This start and brings including start and end timestamps so beware to run after the end timestamp
+            """This start and brings excluding start and including  end timestamps so beware to run after the end timestamp
             otherwise will get unclosed end timestamp values"""
             if interval == "30MINUTE":
                 start = '2022-01-22 18:29:59.999000'
