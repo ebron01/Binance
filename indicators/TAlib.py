@@ -100,24 +100,8 @@ class Plotter():
 """
 
 class conditions():
-    def sleepint(interval):
-        if interval == "30MINUTE":
-            sleeptime = 30 * 60
-        elif interval == "1HOUR":
-            sleeptime = 60 * 60
-        elif interval == "4HOUR":
-            sleeptime = 4 * 60 * 60
-        elif interval == "1DAY":
-            sleeptime = 24 * 60 * 60
-        elif interval == "1WEEK":
-            sleeptime = 7 * 24 * 60 * 60
-        elif interval == "1MONTH":
-            sleeptime = 30 * 7 * 24 * 60 * 60
-        return sleeptime
-    def indreturner(engine):
-        updatedprices = pd.read_sql('SELECT * FROM ' + pair + interval + '', engine)
-        indicators = indicator.Indicators()
-        return indicator.Calculate.calculator(indicators, updatedprices)
+
+
     def MACDcond(results):
         buy = {}
         sell = {}
@@ -184,7 +168,6 @@ class conditions():
                         openposition = False
         return buy, sell
     def MACDRSIcondreal(results, engine):
-        # engine = sqlalchemy.create_engine('sqlite:///../history/DBDEV/DEVSELECTED_15JAN.db')
         print("MACDRSIcondreal started")
         openposition = False
         print("position is closed")

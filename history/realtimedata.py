@@ -106,12 +106,12 @@ def job(client, symbol, interval, dbname):
                             result.pricetime.iloc[-1:].values[0]))
             connection.commit()
             print(f"local execution time {t}")
-        except:
+        except Exception as e:
+            print(e)
             print(f'passed {sym}')
             continue
     end = timer()
     print(f'Execution time {interval} for all tokens in seconds is : {end - start}')  # Time in seconds
-
 if __name__ == '__main__':
     binance_api, binance_secret = api_keys()
     client = Client(binance_api, binance_secret)
@@ -119,12 +119,24 @@ if __name__ == '__main__':
     symbol, intervals = coin_details()
     scheduler = BlockingScheduler()
     # Run every minute at 22 o'clock a day job Method
+    """times used for the methods are local timestamps not binance ones it starts jobs at given local time"""
+    scheduler.add_job(job, 'interval', minutes=30, start_date='2022-01-28 15:02:00',
+                      args=[client, symbol, '30MINUTE', dbname])
+    scheduler.add_job(job, 'interval', hours=1, start_date='2022-01-28 14:41:00',
+                      args=[client, symbol, '1HOUR', dbname])
+    scheduler.add_job(job, 'interval', hours=4, start_date='2022-01-28 16:32:00',
+                      args=[client, symbol, '4HOUR', dbname])
+    scheduler.add_job(job, 'interval', hours=24, start_date='2022-01-29 04:32:00',
+                      args=[client, symbol, '1DAY', dbname])
+
+    """changed on 27 Jan
     scheduler.add_job(job, 'cron', minute='*/30', args=[client, symbol, '30MINUTE', dbname])
     scheduler.add_job(job, 'cron', hour='*/1', args=[client, symbol, '1HOUR', dbname])
     scheduler.add_job(job, 'cron', hour='*/4', args=[client, symbol, '4HOUR', dbname])
     scheduler.add_job(job, 'cron', day='*/1', args=[client, symbol, '1DAY', dbname])
     scheduler.add_job(job, 'cron', week='*/1', args=[client, symbol, '1WEEK', dbname])
     scheduler.add_job(job, 'cron', month='*',  args=[client, symbol, '1MONTH', dbname])
+    """
     # # Run once a day at 22 and 23:25 job Method
     # scheduler.add_job(job, 'cron', hour='14-15', minute='14', args=['job2'])
     scheduler.start()

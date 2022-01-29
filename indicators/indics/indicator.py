@@ -3,6 +3,12 @@ from talib import MA_Type
 import matplotlib.pyplot as plt
 import numpy as np
 from datetime import datetime
+import json
+import pandas as pd
+import time
+
+def gettime():
+    return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
 
 class Indicators():
     def __init__(self, rsi=None, rsibasedma=None, macd=None, macdsignal=None, macdhist=None,
@@ -131,6 +137,19 @@ class Indicators():
         return prices.close_price
 
 class Calculate(Indicators):
+    # def job(scheduler, time, engine, symbol, intervals):
+    #     if intervals == '30MINUTES':
+    #         scheduler.add_job(Calculate.indreturner, 'interval', minutes=30, start_date=time,
+    #                       args=[engine, symbol, intervals])
+    #     # elif intervals == '1HOUR':
+    #     #     scheduler.add_job(Calculate.indreturner, 'interval', hours=1, start_date=time,
+    #     #                   args=[engine, symbol, intervals])
+    #     # elif intervals == '4HOUR':
+    #     #     scheduler.add_job(Calculate.indreturner, 'interval', hours=4, start_date=time,
+    #     #                   args=[engine, symbol, intervals])
+    #     # elif intervals == '1DAY':
+    #     #     scheduler.add_job(Calculate.indreturner, 'interval', hours=24, start_date=time,
+    #     #                   args=[engine, symbol, intervals])
     def calculator(self, prices):
         self.rsi, self.rsibasedma = Indicators.RSI(prices)
         self.macd, self.macdsignal, self.macdhist = Indicators.MACD(prices)
@@ -142,6 +161,97 @@ class Calculate(Indicators):
         self.pricetime = Indicators.pricetime(prices)
         self.closeprice = Indicators.price(prices)
         return self
+    def sleepint(interval):
+        if interval == "30MINUTE":
+            sleeptime = 30 * 60
+        elif interval == "1HOUR":
+            sleeptime = 60 * 60
+        elif interval == "4HOUR":
+            sleeptime = 4 * 60 * 60
+        elif interval == "1DAY":
+            sleeptime = 24 * 60 * 60
+        elif interval == "1WEEK":
+            sleeptime = 7 * 24 * 60 * 60
+        elif interval == "1MONTH":
+            sleeptime = 30 * 7 * 24 * 60 * 60
+        return sleeptime
+    def indreturner(engine, symbol, intervals):
+        """this sql returns the last price"""
+        # # updated = {}
+        # # for sym in symbol:
+        #     for interval in intervals:
+        #         updatedprices = pd.read_sql('SELECT * FROM ' + sym + interval + ' ORDER BY close_time DESC LIMIT 1', engine)
+        #         updated.update({sym + interval : updatedprices})
+        updated = pd.read_sql('SELECT * FROM ' + symbol + intervals + ' ORDER BY close_time DESC LIMIT 2', engine)
+        return updated
+    def MACDRSIcondreal(engine, symbol, intervals):
+        print("MACDRSIcondreal started")
+        """returns last two timestamps with descending order"""
+        results = Calculate.indreturner(engine, symbol, intervals)
+        print("indicators for the starting position is calculated")
+        # scheduler = BlockingScheduler()
+        openposition = False
+        print("position is closed")
+        if openposition == False:
+            while True:
+                print("searching for buy price")
+                if (results.macd.iloc[0] >= results.macdsignal.iloc[0] and results.macd.iloc[1] <= results.macdsignal.iloc[1] \
+                    and results.rsi.iloc[0] >= results.rsibasedma.iloc[0]) \
+                        or \
+                    (results.rsi.iloc[0] >= results.rsibasedma.iloc[0] and results.rsi.iloc[1] <= results.rsibasedma.iloc[1] \
+                    and results.macd.iloc[0] >= results.macdsignal.iloc[0])\
+                        or \
+                    (results.rsi.iloc[0] >= results.rsibasedma.iloc[0] and results.macd.iloc[0] >= results.macdsignal.iloc[0]):
+                    print("buy condition has happened")
+                    data = {'buy': { 'MACD :': results.macd.iloc[0], 'MACDSIGNAL :': results.macdsignal.iloc[0],
+                            'MACDHIST :': results.macdhist.iloc[0], 'MACDdate :': results.pricetime.iloc[0],
+                            'RSI :': results.rsi.iloc[0], 'RSIbasedMA :': results.rsibasedma.iloc[0],
+                            'RSIdate :': results.pricetime.iloc[0]}}
+                    with open('./buysell/buysell1.json', 'w') as f:
+                        json.dump(data, f)
+                        f.write('\n')
+                    # informer = Inform(message1=f'Buying price is {results.closeprice[-1:]}')
+                    # Inform.general_notify(informer)
+                    print("open position changed to true")
+                    openposition = True
+                    break
+                print(f'sleep started at: {gettime()}')
+                time.sleep(Calculate.sleepint(intervals))
+                print(f'sleep ended at: {gettime()}')
+                print('getting new values')
+                results = Calculate.indreturner(engine, symbol, intervals)
+        if openposition == True:
+            while True:
+                print("searching for sell price")
+                print(f'sleep started at: {gettime()}')
+                time.sleep(Calculate.sleepint(intervals))
+                print(f'sleep ended at: {gettime()}')
+                print('getting new values')
+                newresults = Calculate.indreturner(engine, symbol, intervals)
+                print('got new values')
+                if (newresults.macd.iloc[0] <= newresults.macdsignal.iloc[0] and newresults.macd.iloc[1] >= newresults.macdsignal.iloc[1]) \
+                    or \
+                    (newresults.rsi.iloc[0] <= newresults.rsibasedma.iloc[0] and newresults.rsi.iloc[1] >= newresults.rsibasedma.iloc[1]):
+                    print("sell condition has happened")
+                    newdata = {'sell' : {'MACD :': newresults.macd.iloc[0], 'MACDSIGNAL :': newresults.macdsignal.iloc[0],
+                            'MACDHIST :': newresults.macdhist.iloc[0], 'MACDdate :': newresults.pricetime.iloc[0],
+                            'RSI :': newresults.rsi.iloc[0], 'RSIbasedMA :': newresults.rsibasedma.iloc[0],
+                            'RSIdate :': newresults.pricetime.iloc[0]}}
+                    # informer = Inform(message1=f'Selling price is {newresults.closeprice[-1:]}')
+                    # Inform.general_notify(informer)
+                    print("open position changed to false")
+                    openposition = False
+                    with open('./buysell/buysell.json', 'a') as f:
+                        json.dump(newdata, f)
+                        f.write('\n')
+                    break
+                print('sell condition is not activated yet')
+                data = {'MACD :': newresults.macd.iloc[0], 'MACDSIGNAL :': newresults.macdsignal.iloc[0],
+                        'MACDHIST :': newresults.macdhist.iloc[0], 'MACDdate :': newresults.pricetime.iloc[0],
+                        'RSI :': newresults.rsi.iloc[0], 'RSIbasedMA :': newresults.rsibasedma.iloc[0],
+                        'RSIdate :': newresults.pricetime.iloc[0]}
+                print(data)
+        print("MACDRSIcondreal finished")
 
 class Plotter(Indicators):
     def plotRSI(self, pair, interval):
