@@ -64,15 +64,19 @@ def job(client, symbol, interval, dbname):
             tablename = tablename.strip('1')
             print(f"1 silindi, token ismi {tablename}")
         candles = client.get_klines(symbol=sym, interval=eval(interval_function))
-        candletime1 = pd.to_datetime(candles[-1][6], unit='ms')
+        # candletime1 = pd.to_datetime(candles[-1][6], unit='ms')
         candletime2 = pd.to_datetime(candles[-2][6], unit='ms')
         servertime = pd.to_datetime(client.get_server_time()['serverTime'], unit='ms')
-        print(f'{sym} {counter} server time is {servertime},' + interval + f' interval datetime -2 {candletime2},' + interval +
-               f' interval datetime -1 {candletime1}')
-        if (pd.to_datetime(candles[-1][6], unit='ms') > pd.to_datetime(client.get_server_time()['serverTime'], unit='ms')):
-            candles = candles[-2]
-        else:
-            candles = candles[-1]
+        # print(f'{sym} {counter} server time is {servertime},' + interval + f' interval datetime -2 {candletime2},' + interval +
+        #        f' interval datetime -1 {candletime1}')
+        # if (pd.to_datetime(candles[-1][6], unit='ms') > pd.to_datetime(client.get_server_time()['serverTime'], unit='ms')):
+        #     candles = candles[-2]
+        #     print(f'selected {candletime2} for database')
+        # else:
+        #     candles = candles[-1]
+        #     print(f'selected {candletime1} for database')
+        candles = candles[-2]
+        print(f'{sym} {interval}: server time is {servertime}, inserting {candletime2} to database, local time is {t}')
         cleankline = datacleaning(candles)
         try:
             """this part inserts prices to database first"""
@@ -105,7 +109,7 @@ def job(client, symbol, interval, dbname):
                             result.dmineg.iloc[-1:].values[0], result.dmiplus.iloc[-1:].values[0], result.closeprice.iloc[-1:].values[0],
                             result.pricetime.iloc[-1:].values[0]))
             connection.commit()
-            print(f"local execution time {t}")
+            # print(f"local execution time {t}")
         except Exception as e:
             print(e)
             print(f'passed {sym}')
@@ -120,13 +124,13 @@ if __name__ == '__main__':
     scheduler = BlockingScheduler()
     # Run every minute at 22 o'clock a day job Method
     """times used for the methods are local timestamps not binance ones it starts jobs at given local time"""
-    scheduler.add_job(job, 'interval', minutes=30, start_date='2022-01-28 15:02:00',
+    scheduler.add_job(job, 'interval', minutes=30, start_date='2022-01-30 10:32:00',
                       args=[client, symbol, '30MINUTE', dbname])
-    scheduler.add_job(job, 'interval', hours=1, start_date='2022-01-28 14:41:00',
+    scheduler.add_job(job, 'interval', hours=1, start_date='2022-01-30 10:32:00',
                       args=[client, symbol, '1HOUR', dbname])
-    scheduler.add_job(job, 'interval', hours=4, start_date='2022-01-28 16:32:00',
+    scheduler.add_job(job, 'interval', hours=4, start_date='2022-01-30 12:32:00',
                       args=[client, symbol, '4HOUR', dbname])
-    scheduler.add_job(job, 'interval', hours=24, start_date='2022-01-29 04:32:00',
+    scheduler.add_job(job, 'interval', hours=24, start_date='2022-01-31 04:32:00',
                       args=[client, symbol, '1DAY', dbname])
 
     """changed on 27 Jan
@@ -140,6 +144,3 @@ if __name__ == '__main__':
     # # Run once a day at 22 and 23:25 job Method
     # scheduler.add_job(job, 'cron', hour='14-15', minute='14', args=['job2'])
     scheduler.start()
-
-
-

@@ -105,6 +105,7 @@ def writetoSQLite(symbol, intervals, dbname):
                 end = '2022-01-22 23:59:59.999000'
             #klines = client.get_historical_klines(sym, eval(interval_function), "2021-01-15 19:47:59.999000", end_str="2022-01-15 07:59:59.999000")
             klines = client.get_historical_klines(sym, eval(interval_function), start, end)
+            # klines = client.get_historical_klines(sym, eval(interval_function), "Jan 1, 2015")
             print(f"ended getting klines of {sym} {interval}")
             tablename = sym+interval
             """ RETURN DATA FORMAT OF client.get_historical_klines

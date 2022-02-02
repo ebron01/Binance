@@ -5,7 +5,9 @@ import numpy as np
 from datetime import datetime
 import json
 import pandas as pd
+pd.set_option('display.max_columns', 10)
 import time
+from slackinform import Inform
 
 def gettime():
     return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
@@ -175,6 +177,23 @@ class Calculate(Indicators):
         elif interval == "1MONTH":
             sleeptime = 30 * 7 * 24 * 60 * 60
         return sleeptime
+    def alternatesleep(closetime, symbol, intervals, engine):
+        while True:
+            result = Calculate.indreturner(engine, symbol, intervals)
+            if closetime < result.close_time.iloc[0]:
+                print("found a new entry at the db")
+                closetime = result.close_time.iloc[0]
+                break
+            else:
+                if gettime().split(' ')[1].split(':')[1] == '01' or gettime().split(' ')[1].split(':')[1] == '31':
+                    print('due to database entry will sleep for extra 2 minutes')
+                    time.sleep(120)
+                    print(f'continue at {gettime()}')
+                print(f"sleeping at {gettime()} for 1 minutes")
+                time.sleep(60)
+        return closetime, result
+    def localconverter(pricetime):
+        return str(pd.to_datetime(pricetime) + pd.to_timedelta('04:30:00'))
     def indreturner(engine, symbol, intervals):
         """this sql returns the last price"""
         # # updated = {}
@@ -182,76 +201,101 @@ class Calculate(Indicators):
         #     for interval in intervals:
         #         updatedprices = pd.read_sql('SELECT * FROM ' + sym + interval + ' ORDER BY close_time DESC LIMIT 1', engine)
         #         updated.update({sym + interval : updatedprices})
+        # connection = sqlite3.connect('/mnt/e/wsl/e/Binance/history/DBDEV/DEVSELECTED_15JAN.db')  # creates a new database if there is none.
+        # cursor = connection.cursor()
         updated = pd.read_sql('SELECT * FROM ' + symbol + intervals + ' ORDER BY close_time DESC LIMIT 2', engine)
+        # updated = cursor.execute('SELECT * FROM ' + symbol + intervals + ' ORDER BY close_time DESC LIMIT 2')
         return updated
-    def MACDRSIcondreal(engine, symbol, intervals):
-        print("MACDRSIcondreal started")
-        """returns last two timestamps with descending order"""
-        results = Calculate.indreturner(engine, symbol, intervals)
-        print("indicators for the starting position is calculated")
-        # scheduler = BlockingScheduler()
-        openposition = False
-        print("position is closed")
-        if openposition == False:
+    def MACDRSIcondreal(engine, symbol, intervals, path):
+        try:
+            print("MACDRSIcondreal started")
+            # """returns last two timestamps with descending order"""
+            # results = Calculate.indreturner(engine, symbol, intervals)
+            # print("indicators for the starting position is calculated")
+            openposition = False
+            print("position is closed")
             while True:
-                print("searching for buy price")
-                if (results.macd.iloc[0] >= results.macdsignal.iloc[0] and results.macd.iloc[1] <= results.macdsignal.iloc[1] \
-                    and results.rsi.iloc[0] >= results.rsibasedma.iloc[0]) \
-                        or \
-                    (results.rsi.iloc[0] >= results.rsibasedma.iloc[0] and results.rsi.iloc[1] <= results.rsibasedma.iloc[1] \
-                    and results.macd.iloc[0] >= results.macdsignal.iloc[0])\
-                        or \
-                    (results.rsi.iloc[0] >= results.rsibasedma.iloc[0] and results.macd.iloc[0] >= results.macdsignal.iloc[0]):
-                    print("buy condition has happened")
-                    data = {'buy': { 'MACD :': results.macd.iloc[0], 'MACDSIGNAL :': results.macdsignal.iloc[0],
-                            'MACDHIST :': results.macdhist.iloc[0], 'MACDdate :': results.pricetime.iloc[0],
-                            'RSI :': results.rsi.iloc[0], 'RSIbasedMA :': results.rsibasedma.iloc[0],
-                            'RSIdate :': results.pricetime.iloc[0]}}
-                    with open('./buysell/buysell1.json', 'w') as f:
-                        json.dump(data, f)
-                        f.write('\n')
-                    # informer = Inform(message1=f'Buying price is {results.closeprice[-1:]}')
-                    # Inform.general_notify(informer)
-                    print("open position changed to true")
-                    openposition = True
-                    break
-                print(f'sleep started at: {gettime()}')
-                time.sleep(Calculate.sleepint(intervals))
-                print(f'sleep ended at: {gettime()}')
-                print('getting new values')
+                """returns last two timestamps with descending order"""
                 results = Calculate.indreturner(engine, symbol, intervals)
-        if openposition == True:
-            while True:
-                print("searching for sell price")
-                print(f'sleep started at: {gettime()}')
-                time.sleep(Calculate.sleepint(intervals))
-                print(f'sleep ended at: {gettime()}')
-                print('getting new values')
-                newresults = Calculate.indreturner(engine, symbol, intervals)
-                print('got new values')
-                if (newresults.macd.iloc[0] <= newresults.macdsignal.iloc[0] and newresults.macd.iloc[1] >= newresults.macdsignal.iloc[1]) \
-                    or \
-                    (newresults.rsi.iloc[0] <= newresults.rsibasedma.iloc[0] and newresults.rsi.iloc[1] >= newresults.rsibasedma.iloc[1]):
-                    print("sell condition has happened")
-                    newdata = {'sell' : {'MACD :': newresults.macd.iloc[0], 'MACDSIGNAL :': newresults.macdsignal.iloc[0],
-                            'MACDHIST :': newresults.macdhist.iloc[0], 'MACDdate :': newresults.pricetime.iloc[0],
-                            'RSI :': newresults.rsi.iloc[0], 'RSIbasedMA :': newresults.rsibasedma.iloc[0],
-                            'RSIdate :': newresults.pricetime.iloc[0]}}
-                    # informer = Inform(message1=f'Selling price is {newresults.closeprice[-1:]}')
-                    # Inform.general_notify(informer)
-                    print("open position changed to false")
-                    openposition = False
-                    with open('./buysell/buysell.json', 'a') as f:
-                        json.dump(newdata, f)
-                        f.write('\n')
-                    break
-                print('sell condition is not activated yet')
-                data = {'MACD :': newresults.macd.iloc[0], 'MACDSIGNAL :': newresults.macdsignal.iloc[0],
-                        'MACDHIST :': newresults.macdhist.iloc[0], 'MACDdate :': newresults.pricetime.iloc[0],
-                        'RSI :': newresults.rsi.iloc[0], 'RSIbasedMA :': newresults.rsibasedma.iloc[0],
-                        'RSIdate :': newresults.pricetime.iloc[0]}
-                print(data)
-        print("MACDRSIcondreal finished")
+                print("indicators for the starting position is calculated")
+                data = {}
+                if openposition == False:
+                    while True:
+                        print("searching for buy price")
+                        if (results.macd.iloc[0] >= results.macdsignal.iloc[0] and results.macd.iloc[1] <= results.macdsignal.iloc[1] \
+                            and results.rsi.iloc[0] >= results.rsibasedma.iloc[0]) \
+                                or \
+                            (results.rsi.iloc[0] >= results.rsibasedma.iloc[0] and results.rsi.iloc[1] <= results.rsibasedma.iloc[1] \
+                            and results.macd.iloc[0] >= results.macdsignal.iloc[0])\
+                                or \
+                            (results.rsi.iloc[0] >= results.rsibasedma.iloc[0] and results.macd.iloc[0] >= results.macdsignal.iloc[0]):
+                            print("buy condition has happened")
+                            print(f'buy localtime: {Calculate.localconverter(results.pricetime.iloc[0])}, buy_timestamp: {results.pricetime.iloc[0]}, buy_price: {results.close_price.iloc[0]}')
+                            # data = {'buy': { 'MACD :': results.macd.iloc[0], 'MACDSIGNAL :': results.macdsignal.iloc[0],
+                            #         'MACDHIST :': results.macdhist.iloc[0], 'MACDdate :': results.pricetime.iloc[0],
+                            #         'RSI :': results.rsi.iloc[0], 'RSIbasedMA :': results.rsibasedma.iloc[0],
+                            #         'RSIdate :': results.pricetime.iloc[0]}}
+                            # data = {'buy_price' : results.close_price.iloc[0], 'buy_timestamp' : results.close_time.iloc[0]}
+                            # with open('./buysell/buysell'+ symbol + intervals +'.json', 'w') as f:
+                            #     json.dump(data, f)
+                            #     f.write('\n')
+                            informer = Inform(message1=f'BUY: {symbol}-{intervals}, Price: {results.close_price.iloc[0]}, UTC Time: {results.pricetime.iloc[0]}, Localtime: {Calculate.localconverter(results.pricetime.iloc[0])}')
+                            Inform.general_notify(informer)
+                            print("open position changed to true")
+                            openposition = True
+                            break
+                        # print(f'sleep started at: {gettime()}')
+                        # time.sleep(Calculate.sleepint(intervals))
+                        # print(f'sleep ended at: {gettime()}')
+                        # print('getting new values')
+                        # results = Calculate.indreturner(engine, symbol, intervals)
+                        print("trying alternate sleep started-buy")
+                        closetime, results = Calculate.alternatesleep(results.close_time[0], symbol, intervals, engine)
+                        print("trying alternate sleep finished-buy ")
+                        print('got new values')
+                if openposition == True:
+                    closetime = results.close_time[0]
+                    while True:
+                        print("searching for sell price")
+                        # print(f'sleep started at: {gettime()}')
+                        # time.sleep(Calculate.sleepint(intervals))
+                        # print(f'sleep ended at: {gettime()}')
+                        # print('getting new values')
+                        # newresults = Calculate.indreturner(engine, symbol, intervals)
+                        print("trying alternate sleep started-sell")
+                        # newresults = Calculate.alternatesleep(results.close_time[0], symbol, intervals, engine)
+                        closetime, newresults = Calculate.alternatesleep(closetime, symbol, intervals, engine)
+                        print("trying alternate sleep finished-sell")
+                        print('got new values')
+                        if (newresults.macd.iloc[0] <= newresults.macdsignal.iloc[0] and newresults.macd.iloc[1] >= newresults.macdsignal.iloc[1]) \
+                            or \
+                            (newresults.rsi.iloc[0] <= newresults.rsibasedma.iloc[0] and newresults.rsi.iloc[1] >= newresults.rsibasedma.iloc[1]):
+                            print("sell condition has happened")
+                            print(f'sell localtime: {Calculate.localconverter(newresults.pricetime.iloc[0])},sell_timestamp: {newresults.pricetime.iloc[0]}, sell_price: {newresults.close_price.iloc[0]}')
+                            # newdata = {'sell' : {'MACD :': newresults.macd.iloc[0], 'MACDSIGNAL :': newresults.macdsignal.iloc[0],
+                            #         'MACDHIST :': newresults.macdhist.iloc[0], 'MACDdate :': newresults.pricetime.iloc[0],
+                            #         'RSI :': newresults.rsi.iloc[0], 'RSIbasedMA :': newresults.rsibasedma.iloc[0],
+                            #         'RSIdate :': newresults.pricetime.iloc[0]}}
+                            # informer = Inform(message1=f'Selling price is {newresults.closeprice[-1:]}')
+                            # Inform.general_notify(informer)
+                            informer = Inform(message1=f'SELL: {symbol}-{intervals}, Price: {newresults.close_price.iloc[0]}, UTC Time: {newresults.pricetime.iloc[0]}, Localtime: {Calculate.localconverter(newresults.pricetime.iloc[0])}')
+                            Inform.general_notify(informer)
+                            print("open position changed to false")
+                            openposition = False
+                            profit = (newresults.close_price.iloc[0] - results.close_price.iloc[0]) / results.close_price.iloc[0]
+                            data.update({newresults.pricetime.iloc[0]:
+                                        {'buy_timestamp': results.pricetime.iloc[0], 'buy_price': results.close_price.iloc[0],
+                                         'sell_timestamp': newresults.pricetime.iloc[0], 'sell_price': newresults.close_price.iloc[0],
+                                         'profit': profit * 100, 'difference': newresults.close_price.iloc[0] - results.close_price.iloc[0]}})
+                            # with open('./buysell/buysell' + symbol + intervals + '.json', 'a') as f:
+                            with open(path + symbol + intervals +'.json', 'a') as f:
+                                json.dump(data, f)
+                                f.write('\n')
+                            break
+                        print('sell condition is not activated yet')
+                print("MACDRSIcondreal finished")
+        except Exception as e:
+            print(e)
 
 class Plotter(Indicators):
     def plotRSI(self, pair, interval):
