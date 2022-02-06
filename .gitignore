@@ -1,4 +1,7 @@
 history/DB/*
 history/DBbackup/*
 indicators/charts/*
+indicators/buysell/*
+history/DBDEV/*
+
 
