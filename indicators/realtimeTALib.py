@@ -4,6 +4,8 @@ from data.coins import coin_details
 from indics import indicator
 import argparse
 import os
+import pdb
+
 print('done imports')
 def backtestRSI(engine, path):
     symbol, intervals = coin_details()
@@ -37,25 +39,34 @@ def backtestRSI(engine, path):
                         f.write('total start money: ' + str(start_money)+ ', end money is: ' + str(total_price))
 
 
-def job(symbol, intervals, dbname):
+def job(symbol, intervals, dbname, pc):
     # print("connection is started")
-    engine = sqlalchemy.create_engine('sqlite:///E:/Binance/history/DBDEV/' + dbname + '.db')
-    # path = '/mnt/e/wsl/e/Binance/indicators/buysell/'
-    path = 'E:/Binance/indicators/buysell/'
-    # engine = sqlalchemy.create_engine('sqlite:////mnt/e/wsl/e/Binance/history/DBDEV/' + dbname + '.db')
-    #
+    if pc =='1': #EV WSL
+        engine = sqlalchemy.create_engine('sqlite:////mnt/e/wsl/e/Binance/history/DBDEV/' + dbname + '.db')
+        path = '/mnt/e/wsl/e/Binance/indicators/buysell/'
+    elif pc == '2':#OFIS WSL
+        engine = sqlalchemy.create_engine('sqlite:////mnt/c/Users/a/PycharmProjects/Binance/history/DBDEV/' + dbname + '.db')
+        path = '/mnt/c/Users/a/PycharmProjects/Binance/indicators/buysell/'
+    elif pc == '3':#EV Windows
+        engine = sqlalchemy.create_engine('sqlite:///E:/Binance/history/DBDEV/' + dbname + '.db')
+        path = 'E:/Binance/indicators/buysell/'
+    else:#OFIS Windows
+        engine = sqlalchemy.create_engine('sqlite:///C:/Users/a/PycharmProjects/Binance/history/DBDEV/' + dbname + '.db')
+        path = 'C:/Users/a/PycharmProjects/Binance/buysell/'
+
     print("connection is done")
     """this part is for MACD and RSI implemantion together"""
     # indicator.Calculate.MACDRSIcondreal(engine, symbol, intervals, path)
     """this part is for calculations according to RSI over 50 or under."""
-    # indicator.Calculate.RSI50(engine, symbol, intervals, path)
+    indicator.Calculate.RSI50(engine, symbol, intervals, path)
     """this part is for backtest calculations according to RSI over 50 or under."""
-    backtestRSI(engine, path)
+    # backtestRSI(engine, path)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--interval', action="store", dest='intervals')
     parser.add_argument('--symbol', action="store", dest='symbol')
+    parser.add_argument('--pc', action="store", dest='pc')
     args = parser.parse_args()
     dbname = 'DEVSELECTED_15JAN'
     # symbol, intervals = coin_details()
@@ -63,6 +74,8 @@ if __name__ == '__main__':
     # intervals = intervals[0]
     intervals = args.intervals
     symbol = args.symbol
-    job(symbol, intervals, dbname)
+    pc = args.pc
+    # pdb.set_trace()
+    job(symbol, intervals, dbname, pc)
 
 
