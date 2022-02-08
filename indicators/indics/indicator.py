@@ -394,6 +394,69 @@ class Calculate(Indicators):
                 print("MACDRSIcondreal finished")
         except Exception as e:
             print(e)
+    def RSI50autobuy(engine, symbol, interval, path, client):
+        try:
+            symbol = 'BTCUSDT'
+            interval = '1DAY'
+            informer = Inform(message1=f'Real time buy for {symbol}-{interval}-RSI50 started at {gettime()} localtime')
+            Inform.general_notify(informer)
+            openposition = False
+            print("position is closed")
+            """returns last two timestamps with descending order"""
+            results = Calculate.indreturner(engine, symbol, interval)
+            print("indicators for the starting position is calculated")
+            data = {}
+            if openposition == False:
+                while True:
+                    print("searching for buy price")
+                    if (results.rsi.iloc[0] >= 50):
+                        print("buy condition has happened")
+                        print(f'buy localtime: {Calculate.localconverter(results.pricetime.iloc[0])}, \
+                              buy_timestamp: {results.pricetime.iloc[0]}, buy_price: {results.close_price.iloc[0]}\
+                              buy_rsi: {results.rsi.iloc[0]}')
+                        order = client.create_order(symbol=symbol,
+                                                    side='BUY',
+                                                    type='MARKET',
+                                                    quoteOrderQty='11')
+                        qt = order['executedQty']
+                                                    #quantity=qty
+                        informer = Inform(message1=f'BUY: {symbol}-{interval}, Price: {results.close_price.iloc[0]}, UTC Time: {results.pricetime.iloc[0]}, QT: 11 USDT')
+                        Inform.general_notify(informer)
+                        print("open position changed to true")
+                        openposition = True
+                        break
+                    print("trying alternate sleep started-buy")
+                    closetime, results = Calculate.alternatesleep(results.close_time[0], symbol, interval, engine)
+                    print("trying alternate sleep finished-buy ")
+                    print('got new values')
+            if openposition == True:
+                closetime = results.close_time[0]
+                while True:
+                    print("searching for sell price")
+                    print("trying alternate sleep started-sell")
+                    closetime, newresults = Calculate.alternatesleep(closetime, symbol, interval, engine)
+                    print("trying alternate sleep finished-sell")
+                    print('got new values')
+                    if (newresults.rsi.iloc[0] < 50):
+                        print("sell condition has happened")
+                        print(
+                            f'sell localtime: {Calculate.localconverter(newresults.pricetime.iloc[0])},\
+                            sell_timestamp: {newresults.pricetime.iloc[0]}, sell_price: {newresults.close_price.iloc[0]}, \
+                            rsi: {newresults.rsi.iloc[0]}')
+                        order = client.create_order(symbol=symbol,
+                                                    side='SELL',
+                                                    type='MARKET',
+                                                    quantity=qt)
+                        informer = Inform(
+                            message1=f'BUY: {symbol}-{interval} real money, Price: {results.close_price.iloc[0]}, UTC Time: {results.pricetime.iloc[0]}, Localtime: {Calculate.localconverter(results.pricetime.iloc[0])},SELL: {symbol}-{intervals}, Price: {newresults.close_price.iloc[0]}, UTC Time: {newresults.pricetime.iloc[0]}, Localtime: {Calculate.localconverter(newresults.pricetime.iloc[0])}, RSI: {newresults.rsi.iloc[0]}')
+                        Inform.general_notify(informer)
+                        print("open position changed to false")
+                        openposition = False
+                        break
+                    print('sell condition is not activated yet')
+            print("realtime buy-sell finished")
+        except Exception as e:
+            print(e)
     def RSI50backtest(engine, symbol, intervals, path):
         # results = pd.read_sql("SELECT * FROM " + symbol + intervals + " WHERE close_time BETWEEN '2021-07-27 23:59:59.999000' AND '2022-02-02 23:59:59.999000'", engine)
         results = pd.read_sql("SELECT * FROM " + symbol + intervals + " WHERE close_time BETWEEN '2021-07-27 23:59:59.999000' AND strftime('%Y-%m-%d %H-%M-%f', 'now')", engine)
