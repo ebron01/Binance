@@ -5,6 +5,8 @@ from indics import indicator
 import argparse
 import os
 import pdb
+from keys import api_keys
+from binance.client import Client
 
 print('done imports')
 def backtestRSI(engine, path):
@@ -40,7 +42,8 @@ def backtestRSI(engine, path):
 
 
 def job(symbol, intervals, dbname, pc):
-    # print("connection is started")
+    binance_api, binance_secret = api_keys()
+    client = Client(binance_api, binance_secret)
     if pc =='1': #EV WSL
         engine = sqlalchemy.create_engine('sqlite:////mnt/e/wsl/e/Binance/history/DBDEV/' + dbname + '.db')
         path = '/mnt/e/wsl/e/Binance/indicators/buysell/'
@@ -58,9 +61,10 @@ def job(symbol, intervals, dbname, pc):
     """this part is for MACD and RSI implemantion together"""
     # indicator.Calculate.MACDRSIcondreal(engine, symbol, intervals, path)
     """this part is for calculations according to RSI over 50 or under."""
-    indicator.Calculate.RSI50(engine, symbol, intervals, path)
+    # indicator.Calculate.RSI50(engine, symbol, intervals, path)
     """this part is for backtest calculations according to RSI over 50 or under."""
     # backtestRSI(engine, path)
+    indicator.Calculate.RSI50autobuy(engine, symbol, intervals, path, client)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -77,5 +81,7 @@ if __name__ == '__main__':
     pc = args.pc
     # pdb.set_trace()
     job(symbol, intervals, dbname, pc)
+
+
 
 
