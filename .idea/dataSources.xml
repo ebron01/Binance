@@ -7,5 +7,19 @@
       <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
       <jdbc-url>jdbc:sqlite:E:\Binance\history\DBDEV\DEVSELECTED_15JAN.db</jdbc-url>
     </data-source>
+    <data-source source="LOCAL" name="DEVSELECTED_15JAN [2]" uuid="fd3db568-6658-4a4c-aa80-20a246c0f284">
+      <driver-ref>sqlite.xerial</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
+      <jdbc-url>jdbc:sqlite:C:\Users\a\PycharmProjects\Binance\history\DBDEV\DEVSELECTED_15JAN.db</jdbc-url>
+      <working-dir>$ProjectFileDir$</working-dir>
+    </data-source>
+    <data-source source="LOCAL" name="DEVSELECTED_15JANDEVSELECTED_15JAN_column_added" uuid="6f2c971b-2b6b-4b06-bc10-3a9275421113">
+      <driver-ref>sqlite.xerial</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
+      <jdbc-url>jdbc:sqlite:C:\Users\a\PycharmProjects\Binance\history\DBDEV\DEVSELECTED_15JANDEVSELECTED_15JAN_column_added.db</jdbc-url>
+      <working-dir>$ProjectFileDir$</working-dir>
+    </data-source>
   </component>
 </project>

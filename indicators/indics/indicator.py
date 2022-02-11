@@ -297,10 +297,13 @@ class Calculate(Indicators):
                 print("MACDRSIcondreal finished")
         except Exception as e:
             print(e)
-    def RSI50(engine, symbol, intervals, path):
+    def RSI50(engine, symbol, intervals, path, kauf):
         try:
             # print("MACDRSIcondreal started")
-            informer = Inform(message1=f'{symbol}-{intervals}-RSI50 started at {gettime()} localtime')
+            if kauf:
+                informer = Inform(message1=f'{symbol}-{intervals}-RSI50kauf started at {gettime()} localtime')
+            else:
+                informer = Inform(message1=f'{symbol}-{intervals}-RSI50 started at {gettime()} localtime')
             Inform.general_notify(informer)
             # """returns last two timestamps with descending order"""
             # results = Calculate.indreturner(engine, symbol, intervals)
@@ -315,7 +318,17 @@ class Calculate(Indicators):
                 if openposition == False:
                     while True:
                         print("searching for buy price")
-                        if (results.rsi.iloc[0] >= 50):
+                        if kauf:
+                            condition_buy = (results.rsi.iloc[0] >= 50) and (results.close_price.iloc[0] > results.kauf.iloc[0])
+                            informer = Inform(
+                                message1=f'BUY: {symbol}-{intervals}-RSI50-Kauf, Price: {results.close_price.iloc[0]}, UTC Time: {results.pricetime.iloc[0]}, Localtime: {Calculate.localconverter(results.pricetime.iloc[0])}, RSI Value: {results.rsi.iloc[0]}, KAUF Value: {results.kauf.iloc[0]}')
+                            filename = path + 'rsi50kauf/' + symbol + intervals + '_rsi50kauf.json'
+                        else:
+                            condition_buy = (results.rsi.iloc[0] >= 50)
+                            informer = Inform(
+                                message1=f'BUY: {symbol}-{intervals}-RSI50, Price: {results.close_price.iloc[0]}, UTC Time: {results.pricetime.iloc[0]}, Localtime: {Calculate.localconverter(results.pricetime.iloc[0])}, RSI Value: {results.rsi.iloc[0]}')
+                            filename = path + 'rsi50/' + symbol + intervals + '_rsi50.json'
+                        if condition_buy:
                             print("buy condition has happened")
                             print(f'buy localtime: {Calculate.localconverter(results.pricetime.iloc[0])}, \
                                   buy_timestamp: {results.pricetime.iloc[0]}, buy_price: {results.close_price.iloc[0]}\
@@ -328,7 +341,6 @@ class Calculate(Indicators):
                             # with open('./buysell/buysell'+ symbol + intervals +'.json', 'w') as f:
                             #     json.dump(data, f)
                             #     f.write('\n')
-                            informer = Inform(message1=f'BUY: {symbol}-{intervals}-RSI50, Price: {results.close_price.iloc[0]}, UTC Time: {results.pricetime.iloc[0]}, Localtime: {Calculate.localconverter(results.pricetime.iloc[0])}, RSI Value: {results.rsi.iloc[0]}')
                             Inform.general_notify(informer)
                             print("open position changed to true")
                             openposition = True
@@ -386,7 +398,7 @@ class Calculate(Indicators):
                                               'difference': newresults.close_price.iloc[0] - results.close_price.iloc[
                                                   0]}})
                             # with open('./buysell/buysell' + symbol + intervals + '.json', 'a') as f:
-                            with open(path + 'rsi50/' + symbol + intervals + '_rsi50.json', 'a') as f:
+                            with open(filename, 'a') as f:
                                 json.dump(data, f)
                                 f.write('\n')
                             break
