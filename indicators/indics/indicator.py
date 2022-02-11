@@ -394,10 +394,8 @@ class Calculate(Indicators):
                 print("MACDRSIcondreal finished")
         except Exception as e:
             print(e)
-    def RSI50autobuy(engine, symbol, interval, path, client):
+    def RSI50autobuy(engine, symbol, interval, client, assetQty):
         try:
-            symbol = 'BTCUSDT'
-            interval = '1DAY'
             informer = Inform(message1=f'Real time buy for {symbol}-{interval}-RSI50 started at {gettime()} localtime')
             Inform.general_notify(informer)
             openposition = False
@@ -405,7 +403,6 @@ class Calculate(Indicators):
             """returns last two timestamps with descending order"""
             results = Calculate.indreturner(engine, symbol, interval)
             print("indicators for the starting position is calculated")
-            data = {}
             if openposition == False:
                 while True:
                     print("searching for buy price")
@@ -417,10 +414,10 @@ class Calculate(Indicators):
                         order = client.create_order(symbol=symbol,
                                                     side='BUY',
                                                     type='MARKET',
-                                                    quoteOrderQty='11')
+                                                    quoteOrderQty=assetQty)
                         qt = order['executedQty']
                                                     #quantity=qty
-                        informer = Inform(message1=f'BUY: {symbol}-{interval}, Price: {results.close_price.iloc[0]}, UTC Time: {results.pricetime.iloc[0]}, QT: 11 USDT')
+                        informer = Inform(message1=f'BUY: {symbol}-{interval}, Price: {results.close_price.iloc[0]}, UTC Time: {results.pricetime.iloc[0]}, QT: {assetQty} USDT')
                         Inform.general_notify(informer)
                         print("open position changed to true")
                         openposition = True
@@ -448,7 +445,7 @@ class Calculate(Indicators):
                                                     type='MARKET',
                                                     quantity=qt)
                         informer = Inform(
-                            message1=f'BUY: {symbol}-{interval} real money, Price: {results.close_price.iloc[0]}, UTC Time: {results.pricetime.iloc[0]}, Localtime: {Calculate.localconverter(results.pricetime.iloc[0])},SELL: {symbol}-{intervals}, Price: {newresults.close_price.iloc[0]}, UTC Time: {newresults.pricetime.iloc[0]}, Localtime: {Calculate.localconverter(newresults.pricetime.iloc[0])}, RSI: {newresults.rsi.iloc[0]}')
+                            message1=f'BUY: {symbol}-{interval} real money, Price: {results.close_price.iloc[0]}, UTC Time: {results.pricetime.iloc[0]}, SELL: {symbol}-{interval}, Price: {newresults.close_price.iloc[0]}, UTC Time: {newresults.pricetime.iloc[0]}')
                         Inform.general_notify(informer)
                         print("open position changed to false")
                         openposition = False
@@ -457,7 +454,7 @@ class Calculate(Indicators):
             print("realtime buy-sell finished")
         except Exception as e:
             print(e)
-    def RSI50backtest(engine, symbol, intervals, path):
+    def RSI50backtest(engine, symbol, intervals, path, kauf):
         # results = pd.read_sql("SELECT * FROM " + symbol + intervals + " WHERE close_time BETWEEN '2021-07-27 23:59:59.999000' AND '2022-02-02 23:59:59.999000'", engine)
         results = pd.read_sql("SELECT * FROM " + symbol + intervals + " WHERE close_time BETWEEN '2021-07-27 23:59:59.999000' AND strftime('%Y-%m-%d %H-%M-%f', 'now')", engine)
         # results = pd.read_sql("SELECT * FROM " + symbol + intervals + " WHERE close_time BETWEEN '2021-02-05 23:59:59.999000' AND strftime('%Y-%m-%d %H-%M-%f', 'now')",
@@ -468,15 +465,19 @@ class Calculate(Indicators):
             data = {}
             try:
                 if counter == 0:
-                    if (results.iloc[i].rsi >= 50) and (results.iloc[i].macd >=0):
-                        counter =1
+                    if kauf:
+                        condition_buy = (results.iloc[i].rsi >= 50) and (results.iloc[i].close_price > results.iloc[i].kauf)
+                    else:
+                        condition_buy = (results.iloc[i].rsi >= 50) and (results.iloc[i].macd >=0)
+                    if condition_buy:
+                        counter = 1
                         buy_timestamp = results.iloc[i].pricetime
                         buy_price = results.iloc[i].close_price
                         buy_rsi = results.iloc[i].rsi
                 else:
-                    # if (results.iloc[i].rsi < 50)
-                    if ((results.macd.iloc[i] <= results.macdsignal.iloc[i] and results.macd.iloc[i-1] >= results.macdsignal.iloc[i-1]) \
-                        and (results.rsi.iloc[i] <= results.rsibasedma.iloc[i] and results.rsi.iloc[i-1] >= results.rsibasedma.iloc[i-1])):
+                    if (results.iloc[i].rsi < 50):
+                    # if ((results.macd.iloc[i] <= results.macdsignal.iloc[i] and results.macd.iloc[i-1] >= results.macdsignal.iloc[i-1]) \
+                    #     and (results.rsi.iloc[i] <= results.rsibasedma.iloc[i] and results.rsi.iloc[i-1] >= results.rsibasedma.iloc[i-1])):
                         counter = 0
                         sell_timestamp = results.iloc[i].pricetime
                         sell_price = results.iloc[i].close_price

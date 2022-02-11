@@ -9,7 +9,7 @@ from keys import api_keys
 from binance.client import Client
 
 print('done imports')
-def backtestRSI(engine, path):
+def backtestRSI(engine, path, kauf):
     symbol, intervals = coin_details()
     line = 1
     for sym in symbol:
@@ -17,7 +17,7 @@ def backtestRSI(engine, path):
         for interval in intervals:
             # if interval in ['4HOUR', '1DAY', '1WEEK', '1MONTH']:
             #     continue
-            indicator.Calculate.RSI50backtest(engine, sym, interval, path)
+            indicator.Calculate.RSI50backtest(engine, sym, interval, path, kauf)
         line += 1
     for interval in intervals:
         dir = os.listdir(path + 'bt/' + interval)
@@ -41,7 +41,7 @@ def backtestRSI(engine, path):
                         f.write('total start money: ' + str(start_money)+ ', end money is: ' + str(total_price))
 
 
-def job(symbol, intervals, dbname, pc):
+def job(symbol, intervals, dbname, pc, kauf):
     binance_api, binance_secret = api_keys()
     client = Client(binance_api, binance_secret)
     if pc =='1': #EV WSL
@@ -63,24 +63,22 @@ def job(symbol, intervals, dbname, pc):
     """this part is for calculations according to RSI over 50 or under."""
     # indicator.Calculate.RSI50(engine, symbol, intervals, path)
     """this part is for backtest calculations according to RSI over 50 or under."""
-    # backtestRSI(engine, path)
-    indicator.Calculate.RSI50autobuy(engine, symbol, intervals, path, client)
+    backtestRSI(engine, path, kauf)
+    # indicator.Calculate.RSI50autobuy(engine, 'BTCUSDT', '1DAY', client, assetQty='11')
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--interval', action="store", dest='intervals')
     parser.add_argument('--symbol', action="store", dest='symbol')
     parser.add_argument('--pc', action="store", dest='pc')
+    parser.add_argument('--kauf', action="store", dest='kauf', default=False)
     args = parser.parse_args()
     dbname = 'DEVSELECTED_15JAN'
-    # symbol, intervals = coin_details()
-    # symbol = "BTCUSDT"
-    # intervals = intervals[0]
     intervals = args.intervals
     symbol = args.symbol
     pc = args.pc
-    # pdb.set_trace()
-    job(symbol, intervals, dbname, pc)
+    kauf =args.kauf
+    job(symbol, intervals, dbname, pc, kauf)
 
 
 
