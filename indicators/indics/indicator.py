@@ -406,64 +406,84 @@ class Calculate(Indicators):
                 print("MACDRSIcondreal finished")
         except Exception as e:
             print(e)
-    def RSI50autobuy(engine, symbol, interval, client, assetQty):
+    def RSI50autobuy(engine, symbol, interval, client, assetQty, kauf):
         try:
-            informer = Inform(message1=f'Real time buy for {symbol}-{interval}-RSI50 started at {gettime()} localtime')
+            remaining_fund = assetQty
+            if kauf:
+                informer = Inform(
+                    message1=f'Real time buy for {symbol}-{interval}-RSI50kauf started at {gettime()} localtime')
+            else:
+                informer = Inform(
+                    message1=f'Real time buy for {symbol}-{interval}-RSI50 started at {gettime()} localtime')
             Inform.general_notify(informer)
             openposition = False
             print("position is closed")
             """returns last two timestamps with descending order"""
             results = Calculate.indreturner(engine, symbol, interval)
             print("indicators for the starting position is calculated")
-            if openposition == False:
-                while True:
-                    print("searching for buy price")
-                    if (results.rsi.iloc[0] >= 50):
-                        print("buy condition has happened")
-                        print(f'buy localtime: {Calculate.localconverter(results.pricetime.iloc[0])}, \
-                              buy_timestamp: {results.pricetime.iloc[0]}, buy_price: {results.close_price.iloc[0]}\
-                              buy_rsi: {results.rsi.iloc[0]}')
-                        order = client.create_order(symbol=symbol,
-                                                    side='BUY',
-                                                    type='MARKET',
-                                                    quoteOrderQty=assetQty)
-                        qt = order['executedQty']
-                                                    #quantity=qty
-                        informer = Inform(message1=f'BUY: {symbol}-{interval}, Price: {results.close_price.iloc[0]}, UTC Time: {results.pricetime.iloc[0]}, QT: {assetQty} USDT')
-                        Inform.general_notify(informer)
-                        print("open position changed to true")
-                        openposition = True
-                        break
-                    print("trying alternate sleep started-buy")
-                    closetime, results = Calculate.alternatesleep(results.close_time[0], symbol, interval, engine)
-                    print("trying alternate sleep finished-buy ")
-                    print('got new values')
-            if openposition == True:
-                closetime = results.close_time[0]
-                while True:
-                    print("searching for sell price")
-                    print("trying alternate sleep started-sell")
-                    closetime, newresults = Calculate.alternatesleep(closetime, symbol, interval, engine)
-                    print("trying alternate sleep finished-sell")
-                    print('got new values')
-                    if (newresults.rsi.iloc[0] < 50):
-                        print("sell condition has happened")
-                        print(
-                            f'sell localtime: {Calculate.localconverter(newresults.pricetime.iloc[0])},\
-                            sell_timestamp: {newresults.pricetime.iloc[0]}, sell_price: {newresults.close_price.iloc[0]}, \
-                            rsi: {newresults.rsi.iloc[0]}')
-                        order = client.create_order(symbol=symbol,
-                                                    side='SELL',
-                                                    type='MARKET',
-                                                    quantity=qt)
-                        informer = Inform(
-                            message1=f'BUY: {symbol}-{interval} real money, Price: {results.close_price.iloc[0]}, UTC Time: {results.pricetime.iloc[0]}, SELL: {symbol}-{interval}, Price: {newresults.close_price.iloc[0]}, UTC Time: {newresults.pricetime.iloc[0]}')
-                        Inform.general_notify(informer)
-                        print("open position changed to false")
-                        openposition = False
-                        break
-                    print('sell condition is not activated yet')
-            print("realtime buy-sell finished")
+            while True:
+                if openposition == False:
+                    if kauf:
+                        condition_buy = (results.rsi.iloc[0] >= 50) and (
+                                results.close_price.iloc[0] > results.kauf.iloc[0])
+                    else:
+                        condition_buy = (results.rsi.iloc[0] >= 50)
+                    while True:
+                        assetQty = remaining_fund
+                        print("searching for buy price")
+                        if condition_buy:
+                            if kauf:
+                                informer = Inform(
+                                    message1=f'real time buy done. BUY: {symbol}-{interval}-RSI50-Kauf, Price: {results.close_price.iloc[0]}, UTC Time: {results.pricetime.iloc[0]}, Localtime: {Calculate.localconverter(results.pricetime.iloc[0])}, RSI Value: {results.rsi.iloc[0]}, KAUF Value: {results.kauf.iloc[0]}')
+                            else:
+                                informer = Inform(
+                                    message1=f'real time buy done. BUY: {symbol}-{interval}-RSI50, Price: {results.close_price.iloc[0]}, UTC Time: {results.pricetime.iloc[0]}, Localtime: {Calculate.localconverter(results.pricetime.iloc[0])}, RSI Value: {results.rsi.iloc[0]}')
+                            print("buy condition has happened")
+                            print(f'buy localtime: {Calculate.localconverter(results.pricetime.iloc[0])}, \
+                                  buy_timestamp: {results.pricetime.iloc[0]}, buy_price: {results.close_price.iloc[0]}\
+                                  buy_rsi: {results.rsi.iloc[0]}')
+                            order = client.create_order(symbol=symbol,
+                                                        side='BUY',
+                                                        type='MARKET',
+                                                        quoteOrderQty=assetQty)
+                            qt = order['executedQty']
+                                                        #quantity=qty
+                            # informer = Inform(message1=f'BUY: {symbol}-{interval}, Price: {results.close_price.iloc[0]}, UTC Time: {results.pricetime.iloc[0]}, QT: {assetQty} USDT')
+                            Inform.general_notify(informer)
+                            print("open position changed to true")
+                            openposition = True
+                            break
+                        print("trying alternate sleep started-buy")
+                        closetime, results = Calculate.alternatesleep(results.close_time[0], symbol, interval, engine)
+                        print("trying alternate sleep finished-buy ")
+                        print('got new values')
+                if openposition == True:
+                    closetime = results.close_time[0]
+                    while True:
+                        print("searching for sell price")
+                        print("trying alternate sleep started-sell")
+                        closetime, newresults = Calculate.alternatesleep(closetime, symbol, interval, engine)
+                        print("trying alternate sleep finished-sell")
+                        print('got new values')
+                        if (newresults.rsi.iloc[0] < 50):
+                            print("sell condition has happened")
+                            print(
+                                f'sell localtime: {Calculate.localconverter(newresults.pricetime.iloc[0])},\
+                                sell_timestamp: {newresults.pricetime.iloc[0]}, sell_price: {newresults.close_price.iloc[0]}, \
+                                rsi: {newresults.rsi.iloc[0]}')
+                            order = client.create_order(symbol=symbol,
+                                                        side='SELL',
+                                                        type='MARKET',
+                                                        quantity=qt)
+                            informer = Inform(
+                                message1=f'BUY: {symbol}-{interval} real money, Price: {results.close_price.iloc[0]}, UTC Time: {results.pricetime.iloc[0]}, SELL: {symbol}-{interval}, Price: {newresults.close_price.iloc[0]}, UTC Time: {newresults.pricetime.iloc[0]}')
+                            Inform.general_notify(informer)
+                            print("open position changed to false")
+                            openposition = False
+                            remaining_fund = float(qt) * float(order['fills'][0]['price'])
+                            print("realtime buy-sell finished")
+                            break
+                        print('sell condition is not activated yet')
         except Exception as e:
             print(e)
     def RSI50backtest(engine, symbol, intervals, path, kauf):

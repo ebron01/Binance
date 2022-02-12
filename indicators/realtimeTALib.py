@@ -61,10 +61,10 @@ def job(symbol, intervals, dbname, pc, kauf):
     """this part is for MACD and RSI implemantion together"""
     # indicator.Calculate.MACDRSIcondreal(engine, symbol, intervals, path)
     """this part is for calculations according to RSI over 50 or under."""
-    indicator.Calculate.RSI50(engine, symbol, intervals, path, kauf)
+    # indicator.Calculate.RSI50(engine, symbol, intervals, path, kauf)
     """this part is for backtest calculations according to RSI over 50 or under."""
     # backtestRSI(engine, path, kauf)
-    # indicator.Calculate.RSI50autobuy(engine, 'BTCUSDT', '1DAY', client, assetQty='11')
+    indicator.Calculate.RSI50autobuy(engine, symbol, intervals, client, '50', kauf)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
