@@ -53,6 +53,9 @@ def job(symbol, intervals, dbname, pc, kauf):
     elif pc == '3':#EV Windows
         engine = sqlalchemy.create_engine('sqlite:///E:/Binance/history/DBDEV/' + dbname + '.db')
         path = 'E:/Binance/indicators/buysell/'
+    elif pc == '4':#server
+        engine = sqlalchemy.create_engine('sqlite:////home/ubuntu/Binance/history/DBDEV/' + dbname + '.db')
+        path = '/home/ubuntu/Binance/indicators/buysell/'
     else:#OFIS Windows
         engine = sqlalchemy.create_engine('sqlite:///C:/Users/a/PycharmProjects/Binance/history/DBDEV/' + dbname + '.db')
         path = 'C:/Users/a/PycharmProjects/Binance/buysell/'
