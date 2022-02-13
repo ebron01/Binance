@@ -405,6 +405,11 @@ class Calculate(Indicators):
                         print('sell condition is not activated yet')
                 print("MACDRSIcondreal finished")
         except Exception as e:
+            if kauf:
+                informer = Inform(message1=f'EXCEPTION-RSI50Kauf for {symbol}-{intervals} as {e}')
+            else:
+                informer = Inform(message1=f'EXCEPTION-RSI50 for {symbol}-{intervals} as {e}')
+            Inform.general_notify(informer)
             print(e)
     def RSI50autobuy(engine, symbol, interval, client, assetQty, kauf):
         try:
@@ -485,6 +490,9 @@ class Calculate(Indicators):
                             break
                         print('sell condition is not activated yet')
         except Exception as e:
+            informer = Inform(
+                message1=f'EXCEPTION-RSI50KAUFreal: for {symbol}-{interval} as {e}')
+            Inform.general_notify(informer)
             print(e)
     def RSI50backtest(engine, symbol, intervals, path, kauf):
         # results = pd.read_sql("SELECT * FROM " + symbol + intervals + " WHERE close_time BETWEEN '2021-07-27 23:59:59.999000' AND '2022-02-02 23:59:59.999000'", engine)
