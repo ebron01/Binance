@@ -61,13 +61,17 @@ def job(symbol, intervals, dbname, pc, kauf):
         path = 'C:/Users/a/PycharmProjects/Binance/buysell/'
 
     print("connection is done")
-    """this part is for MACD and RSI implemantion together"""
-    # indicator.Calculate.MACDRSIcondreal(engine, symbol, intervals, path)
-    """this part is for calculations according to RSI over 50 or under."""
-    # indicator.Calculate.RSI50(engine, symbol, intervals, path, kauf)
-    """this part is for backtest calculations according to RSI over 50 or under."""
-    # backtestRSI(engine, path, kauf)
-    indicator.Calculate.RSI50autobuy(engine, symbol, intervals, client, '50', kauf)
+    if setup == 'MACDRSI':
+        """this part is for MACD and RSI implemantion together"""
+        indicator.Calculate.MACDRSIcondreal(engine, symbol, intervals, path)
+    elif setup == 'RSI50':
+        """this part is for calculations according to RSI over 50 or under."""
+        indicator.Calculate.RSI50(engine, symbol, intervals, path, kauf, pc)
+    elif setup == 'BTRSI':
+        """this part is for backtest calculations according to RSI over 50 or under."""
+        backtestRSI(engine, path, kauf)
+    elif setup == 'RSIautobuy':
+        indicator.Calculate.RSI50autobuy(engine, symbol, intervals, client, '50', kauf, pc)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -75,12 +79,10 @@ if __name__ == '__main__':
     parser.add_argument('--symbol', action="store", dest='symbol')
     parser.add_argument('--pc', action="store", dest='pc')
     parser.add_argument('--kauf', action="store", dest='kauf', default=False)
+    parser.add_argument('--setup', action="store", dest='setup')
     args = parser.parse_args()
     dbname = 'DEVSELECTED_15JAN'
-    intervals = args.intervals
-    symbol = args.symbol
-    pc = args.pc
-    kauf =args.kauf
+    intervals, symbol, pc, kauf, setup = args.intervals, args.symbol, args.pc, args.kauf, args.setup
     job(symbol, intervals, dbname, pc, kauf)
 
 

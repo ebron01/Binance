@@ -297,13 +297,13 @@ class Calculate(Indicators):
                 print("MACDRSIcondreal finished")
         except Exception as e:
             print(e)
-    def RSI50(engine, symbol, intervals, path, kauf):
+    def RSI50(engine, symbol, intervals, path, kauf, pc):
         try:
             # print("MACDRSIcondreal started")
             if kauf:
-                informer = Inform(message1=f'{symbol}-{intervals}-RSI50kauf started at {gettime()} localtime')
+                informer = Inform(message1=f'{pc}-{symbol}-{intervals}-RSI50kauf started at {gettime()} localtime')
             else:
-                informer = Inform(message1=f'{symbol}-{intervals}-RSI50 started at {gettime()} localtime')
+                informer = Inform(message1=f'{pc}-{symbol}-{intervals}-RSI50 started at {gettime()} localtime')
             Inform.general_notify(informer)
             # """returns last two timestamps with descending order"""
             # results = Calculate.indreturner(engine, symbol, intervals)
@@ -321,12 +321,12 @@ class Calculate(Indicators):
                         if kauf:
                             condition_buy = (results.rsi.iloc[0] >= 50) and (results.close_price.iloc[0] > results.kauf.iloc[0])
                             informer = Inform(
-                                message1=f'BUY: {symbol}-{intervals}-RSI50-Kauf, Price: {results.close_price.iloc[0]}, UTC Time: {results.pricetime.iloc[0]}, Localtime: {Calculate.localconverter(results.pricetime.iloc[0])}, RSI Value: {results.rsi.iloc[0]}, KAUF Value: {results.kauf.iloc[0]}')
+                                message1=f'{pc}-BUY: {symbol}-{intervals}-RSI50-Kauf, Price: {results.close_price.iloc[0]}, UTC Time: {results.pricetime.iloc[0]} RSI Value: {results.rsi.iloc[0]}, KAUF Value: {results.kauf.iloc[0]}')
                             filename = path + 'rsi50kauf/' + symbol + intervals + '_rsi50kauf.json'
                         else:
                             condition_buy = (results.rsi.iloc[0] >= 50)
                             informer = Inform(
-                                message1=f'BUY: {symbol}-{intervals}-RSI50, Price: {results.close_price.iloc[0]}, UTC Time: {results.pricetime.iloc[0]}, Localtime: {Calculate.localconverter(results.pricetime.iloc[0])}, RSI Value: {results.rsi.iloc[0]}')
+                                message1=f'{pc}-BUY: {symbol}-{intervals}-RSI50, Price: {results.close_price.iloc[0]}, UTC Time: {results.pricetime.iloc[0]}, RSI Value: {results.rsi.iloc[0]}')
                             filename = path + 'rsi50/' + symbol + intervals + '_rsi50.json'
                         if condition_buy:
                             print("buy condition has happened")
@@ -381,7 +381,7 @@ class Calculate(Indicators):
                             # informer = Inform(message1=f'Selling price is {newresults.closeprice[-1:]}')
                             # Inform.general_notify(informer)
                             informer = Inform(
-                                message1=f'BUY: {symbol}-{intervals}, Price: {results.close_price.iloc[0]}, UTC Time: {results.pricetime.iloc[0]}, Localtime: {Calculate.localconverter(results.pricetime.iloc[0])},SELL: {symbol}-{intervals}, Price: {newresults.close_price.iloc[0]}, UTC Time: {newresults.pricetime.iloc[0]}, Localtime: {Calculate.localconverter(newresults.pricetime.iloc[0])}, RSI: {newresults.rsi.iloc[0]}')
+                                message1=f'{pc}-BUY: {symbol}-{intervals}, Price: {results.close_price.iloc[0]}, UTC Time: {results.pricetime.iloc[0]}, SELL: Price: {newresults.close_price.iloc[0]}, UTC Time: {newresults.pricetime.iloc[0]}, RSI: {newresults.rsi.iloc[0]}')
                             Inform.general_notify(informer)
                             print("open position changed to false")
                             openposition = False
@@ -406,20 +406,20 @@ class Calculate(Indicators):
                 print("MACDRSIcondreal finished")
         except Exception as e:
             if kauf:
-                informer = Inform(message1=f'EXCEPTION-RSI50Kauf for {symbol}-{intervals} as {e}')
+                informer = Inform(message1=f'{pc}-EXCEPTION-RSI50Kauf for {symbol}-{intervals} as {e}')
             else:
-                informer = Inform(message1=f'EXCEPTION-RSI50 for {symbol}-{intervals} as {e}')
+                informer = Inform(message1=f'{pc}-EXCEPTION-RSI50 for {symbol}-{intervals} as {e}')
             Inform.general_notify(informer)
             print(e)
-    def RSI50autobuy(engine, symbol, interval, client, assetQty, kauf):
+    def RSI50autobuy(engine, symbol, interval, client, assetQty, kauf, pc):
         try:
             remaining_fund = assetQty
             if kauf:
                 informer = Inform(
-                    message1=f'Real time buy for {symbol}-{interval}-RSI50kauf started at {gettime()} localtime')
+                    message1=f'{pc}-Real time buy for {symbol}-{interval}-RSI50kauf started at {gettime()} localtime')
             else:
                 informer = Inform(
-                    message1=f'Real time buy for {symbol}-{interval}-RSI50 started at {gettime()} localtime')
+                    message1=f'{pc}-Real time buy for {symbol}-{interval}-RSI50 started at {gettime()} localtime')
             Inform.general_notify(informer)
             openposition = False
             print("position is closed")
@@ -439,10 +439,10 @@ class Calculate(Indicators):
                         if condition_buy:
                             if kauf:
                                 informer = Inform(
-                                    message1=f'real time buy done. BUY: {symbol}-{interval}-RSI50-Kauf, Price: {results.close_price.iloc[0]}, UTC Time: {results.pricetime.iloc[0]}, Localtime: {Calculate.localconverter(results.pricetime.iloc[0])}, RSI Value: {results.rsi.iloc[0]}, KAUF Value: {results.kauf.iloc[0]}')
+                                    message1=f'{pc}-real time buy done. BUY: {symbol}-{interval}-RSI50-Kauf, Price: {results.close_price.iloc[0]}, UTC Time: {results.pricetime.iloc[0]}, RSI Value: {results.rsi.iloc[0]}, KAUF Value: {results.kauf.iloc[0]}')
                             else:
                                 informer = Inform(
-                                    message1=f'real time buy done. BUY: {symbol}-{interval}-RSI50, Price: {results.close_price.iloc[0]}, UTC Time: {results.pricetime.iloc[0]}, Localtime: {Calculate.localconverter(results.pricetime.iloc[0])}, RSI Value: {results.rsi.iloc[0]}')
+                                    message1=f'{pc}-real time buy done. BUY: {symbol}-{interval}-RSI50, Price: {results.close_price.iloc[0]}, UTC Time: {results.pricetime.iloc[0]}, RSI Value: {results.rsi.iloc[0]}')
                             print("buy condition has happened")
                             print(f'buy localtime: {Calculate.localconverter(results.pricetime.iloc[0])}, \
                                   buy_timestamp: {results.pricetime.iloc[0]}, buy_price: {results.close_price.iloc[0]}\
@@ -481,7 +481,7 @@ class Calculate(Indicators):
                                                         type='MARKET',
                                                         quantity=qt)
                             informer = Inform(
-                                message1=f'BUY: {symbol}-{interval} real money, Price: {results.close_price.iloc[0]}, UTC Time: {results.pricetime.iloc[0]}, SELL: {symbol}-{interval}, Price: {newresults.close_price.iloc[0]}, UTC Time: {newresults.pricetime.iloc[0]}')
+                                message1=f'{pc}-BUY: {symbol}-{interval} real money, Price: {results.close_price.iloc[0]}, UTC Time: {results.pricetime.iloc[0]}, SELL: Price: {newresults.close_price.iloc[0]}, UTC Time: {newresults.pricetime.iloc[0]}')
                             Inform.general_notify(informer)
                             print("open position changed to false")
                             openposition = False
@@ -491,7 +491,7 @@ class Calculate(Indicators):
                         print('sell condition is not activated yet')
         except Exception as e:
             informer = Inform(
-                message1=f'EXCEPTION-RSI50KAUFreal: for {symbol}-{interval} as {e}')
+                message1=f'{pc}-EXCEPTION-RSI50KAUFreal: for {symbol}-{interval} as {e}')
             Inform.general_notify(informer)
             print(e)
     def RSI50backtest(engine, symbol, intervals, path, kauf):
