@@ -434,7 +434,7 @@ class Calculate(Indicators):
                     else:
                         condition_buy = (results.rsi.iloc[0] >= 50)
                     while True:
-                        assetQty = remaining_fund
+                        assetQty = float(round(remaining_fund, 8))
                         print("searching for buy price")
                         if condition_buy:
                             if kauf:
