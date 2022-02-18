@@ -6,7 +6,6 @@ import sqlalchemy
 import sqlite3
 import pandas as pd
 sys.path.append('C:/Users/a/PycharmProjects/Binance/indicators/')
-from data.coins import coin_details
 from indics import indicator
 
 def datacleaning(klines):
@@ -32,14 +31,21 @@ def datacleaning(klines):
             """
         cleanklines.append([str(pd.to_datetime(line[6], unit='ms')), line[1], line[2], line[3], line[4], line[5], str(pd.to_datetime(line[6], unit='ms'))])
     return cleanklines
-def sqldump(db ):
-   con = sqlite3.connect('./DBDEV/' + db)
-   with open('./DBDEV/dumps/' + db + '.sql', 'w') as f:
+def sqldump(olddb, newdb):
+   con = sqlite3.connect('./DBDEV/' + olddb + '.db')
+   with open('./DBDEV/dumps/' + olddb + '.sql', 'w') as f:
         for line in con.iterdump():
             f.write('%s\n' % line)
-        print(f'done creating dump for {db}')
-def sqlwrite():
-    print()
+        print(f'done creating dump for {olddb}')
+
+   con = sqlite3.connect('./DBDEV/' + newdb + '.db')
+   cur = con.cursor()
+   print(f'started writing tables to {newdb} database')
+   with open('./DBDEV/dumps/' + olddb + '.sql', 'r') as f:
+        sql = f.read()  # watch out for built-in `str`
+        cur.executescript(sql)
+   print(f'done writing tables to {newdb} database')
+
 def writetoSQLite(symbol, intervals, dbname):
     connection = sqlite3.connect('./DBDEV/' + dbname + '.db')  # creates a new database if there is none.
     cursor = connection.cursor()  # we can execute sql commands with this cursor.
@@ -119,17 +125,15 @@ def writetoSQLite(symbol, intervals, dbname):
                 print(e)
                 continue
 if __name__ == '__main__':
-    # binance_api, binance_secret = api_keys()
-    # client = Client(binance_api, binance_secret)
-    # # symbol, intervals = coin_details()
-    # symbol = ['HNTUSDT', 'XRPUSDT', 'LUNAUSDT', 'NEARUSDT', 'SHIBUSDT', 'DOGEUSDT', 'EGLDUSDT']
-    # interval = ['1MONTH', '1WEEK', '1DAY', '4HOUR', '1HOUR', '30MINUTE']
-    # newdbname = 'COINADDERDB'
+    binance_api, binance_secret = api_keys()
+    client = Client(binance_api, binance_secret)
+    symbol = ['HNTUSDT', 'XRPUSDT', 'LUNAUSDT', 'NEARUSDT', 'SHIBUSDT', 'DOGEUSDT', 'EGLDUSDT']
+    interval = ['1MONTH', '1WEEK', '1DAY', '4HOUR', '1HOUR', '30MINUTE']
     olddb = 'COINADDERDB'
-    # writetoSQLite(symbol, interval, newdbname)
+    newdb = 'DEVSELECTED_15JAN'
+    writetoSQLite(symbol, interval, olddb)
+
     #sqldump dumps all new tables written to the newly created database
-    sqldump(olddb)
-    #sqlwrite writes all dumped tables to the old database
-    # sqlwrite()
+    sqldump(olddb, newdb)
 
 

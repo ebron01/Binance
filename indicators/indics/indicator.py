@@ -238,7 +238,7 @@ class Calculate(Indicators):
                             #         'RSIdate :': results.pricetime.iloc[0]}}
                             # data = {'buy_price' : results.close_price.iloc[0], 'buy_timestamp' : results.close_time.iloc[0]}
                             # with open('./buysell/buysell'+ symbol + intervals +'.json', 'w') as f:
-                            #     json.dump(data, f)
+                            #     json.dumps(data, f)
                             #     f.write('\n')
                             # informer = Inform(message1=f'BUY: {symbol}-{intervals}, Price: {results.close_price.iloc[0]}, UTC Time: {results.pricetime.iloc[0]}, Localtime: {Calculate.localconverter(results.pricetime.iloc[0])}')
                             # Inform.general_notify(informer)
@@ -339,7 +339,7 @@ class Calculate(Indicators):
                             #         'RSIdate :': results.pricetime.iloc[0]}}
                             # data = {'buy_price' : results.close_price.iloc[0], 'buy_timestamp' : results.close_time.iloc[0]}
                             # with open('./buysell/buysell'+ symbol + intervals +'.json', 'w') as f:
-                            #     json.dump(data, f)
+                            #     json.dumps(data, f)
                             #     f.write('\n')
                             Inform.general_notify(informer)
                             print("open position changed to true")
