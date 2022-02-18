@@ -434,7 +434,7 @@ class Calculate(Indicators):
                     else:
                         condition_buy = (results.rsi.iloc[0] >= 50)
                     while True:
-                        assetQty = float(round(float(remaining_fund), 5))
+                        assetQty = float(round(float(remaining_fund), 3))
                         print("searching for buy price")
                         if condition_buy:
                             if kauf:
@@ -486,6 +486,8 @@ class Calculate(Indicators):
                             print("open position changed to false")
                             openposition = False
                             remaining_fund = float(qt) * float(order['fills'][0]['price'])
+                            remaining_fund =float(round(remaining_fund, 3))
+                            results = newresults
                             print("realtime buy-sell finished")
                             break
                         print('sell condition is not activated yet')
